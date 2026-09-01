@@ -78,6 +78,7 @@ class User:
 
 
     def transfer(self, destiny, value) -> bool:
+        value = int(value) * 100
         with db() as (conn, cur):
             try:
                 cur.execute('BEGIN IMMEDIATE') # Impede race conditions aqui
@@ -90,6 +91,8 @@ class User:
                         return False
 
                     cur.execute('UPDATE users SET currency=currency + ? WHERE id=?', (value, dest['id']))
+
+                    cur.execute('INSERT INTO transfers(source, destiny, value) VALUES(?, ?, ?)', (self.id, dest['id'], value))
 
                     conn.commit()
                     self._currency -= int(value)
@@ -125,14 +128,8 @@ class Transfers:
     @classmethod
     def list_user_transfs(cls, user_id: str) -> list[Transfers]:
         with db() as (_, cur):
-            query = cur.execute('SELECT id FROM transfers t WHERE t.source=? OR t.destiny=?', (user_id, user_id)).fetchall()
-        rows = [dict(row) for row in query]
-
-        transfs: list[Transfers] = []
-        for row in rows:
-            t: Transfers = cls.get_transfer(row['id'])
-            if t:
-                transfs.append(t)
+            query = cur.execute('SELECT * FROM transfers WHERE source=? OR destiny=?', (user_id, user_id)).fetchall()
+        transfs = [dict(row) for row in query]
 
         return transfs
 

@@ -1,4 +1,4 @@
-from src import User, Transfers
+from src import User
 from src.utils import Text
 
 import socket
@@ -6,33 +6,32 @@ import threading
 
 BANNER: str = f''
 
-HELP: str = '''[CB] LISTA DE COMANDOS
-SALDO - Exibe o saldo existente na usa conta corrente
-INFO - Exibe as informaçẽos da sua sessão atual
-TRANSF destiny value - Transfere dinheiro para o destino especificado
-UPDATE key - Cria uma chave de transferencia para a sua conta
-LIST_T - Lista todas as suas transações
-$> '''
+HELP: str = ''
 
 class Bank:
-    def __init__(self, host: str = '0.0.0.0', port=9000):
-        self.threads = []
-        self.host = host
-        self.port = port
+    def __init__(self):
+        self.threads: list = []
 
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.commands: dict = {}
 
-        self.sock.bind((host, port))
+    def help(self) -> str:
+        return HELP
 
-        self.sock.listen(10)
+    def config_sock(self, host, port) -> socket.socket:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        self.start_server()
+        sock.bind((host, port))
+        sock.listen(10)
 
-    def start_server(self):
-        print(f'[+] Serviço CryptaBank iniciado em {self.host} na porta {self.port}')
+        return sock
+
+    def start_server(self, host: str = '0.0.0.0', port=9000):
+        sock = self.config_sock(host, port)
+
+        print(f'[+] Serviço CryptaBank iniciado em {host} na porta {port}')
         while True:
-            con, client = self.sock.accept()
+            con, client = sock.accept()
             t = threading.Thread(target=self.handle_login, args=(con, client))
             t.start()
 
@@ -56,71 +55,34 @@ class Bank:
 
         self.handle_user(user, con)
 
+    def command(self, cmd: str, help: str = ''):
+        def wrapper(func):
+            global HELP
+            self.commands[cmd] = func
+            HELP += f'{cmd} - {help}\n'
+            return func
+        return wrapper
+
 
     def handle_user(self, user: User, con: socket.socket):
         while True:
-            cmd: str = con.recv(1024).decode('utf-8').strip()
+            data: str = con.recv(1024).decode('utf-8').strip().split()
+            if not data:
+                con.close()
+                return
 
-            if cmd.upper() == 'HELP':
-                con.send(HELP.encode('utf-8'))
-                continue
+            cmd = data[0].upper()
+            args = data[1:]
 
-            elif cmd.upper() == 'SALDO':
-                saldo: str = f'{(user.currency / 100):.2f}'.replace('.', ',')
-                response = Text.render_response(f'Saldo atual: R$ {saldo}', 'R')
+            func = self.commands.get(cmd)
 
+            if not func:
+                response = Text.render_response('Invalid command', 'E')
                 con.send(response)
                 continue
 
-            elif cmd.upper() == 'INFO':
-                saldo: str = f'{(user.currency / 100):.2f}'.replace('.', ',')
+            response = func(user, args)
+            con.send(response)
 
-                infos: str = f'- id: {user.id}\n- Username: {user.username}\n- Currency: R$ {saldo}\n- Key: {user.key}'
-                response: bytes = Text.render_response(infos, 'R')
-                con.send(response)
-                continue
+            
 
-            elif cmd[:6].upper() == 'UPDATE':
-                key = cmd.split(' ')[1]
-
-                success: bool = user.update_key(key)
-                if not success:
-                    response: bytes = Text.render_response('A chave não pode ser atualizada.', 'E')
-                    con.send(response)
-                else:
-                    response: bytes = Text.render_response(f'chave atualizada com sucesso -> {user.key}', 'I')
-                    con.send(response)
-
-                continue
-
-            elif cmd[:6].upper() == 'TRANSF':
-                destiny, value = cmd.split(' ')[-2:]
-
-
-
-                success: bool = user.transfer(destiny, value)
-                response = b''
-                if success:
-                    response = Text.render_response(f'Transferência para {destiny} no valor de R$ {value} bem sucedida', 'S')
-                else:
-                    response = Text.render_response(f'Erro ao transferir R$ {value} para {destiny}.', 'E')
-
-                con.send(response)
-
-                continue
-
-            elif cmd[:6].upper() == 'LIST_T':
-                transfers: list[Transfers] = Transfers.list_user_transfs(user.id)
-                response: str = ''
-                for t in transfers:
-                    response += f'[+] id: {t.id} - source: {t.source} - destiny: {t.destiny} - value: {t.value}\n'
-
-                response = Text.render_response(response, 'R')
-                con.send(response)
-                
-                continue
-
-            else:
-                response: bytes = Text.render_response(f'Comando {cmd[:6]} não encontrado.', 'E')
-                con.send(response)
-                continue
