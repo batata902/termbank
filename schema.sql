@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS users(
 
 CREATE TABLE IF NOT EXISTS transfers(
     id INTEGER PRIMARY KEY,
-    source TEXT NOT NULL,
-    destiny TEXT NO NULL,
+    source INTEGER NOT NULL REFERENCES users(id),
+    destiny INTEGER NOT NULL REFERENCES users(id),
     value INTEGER NOT NULL
 );
 

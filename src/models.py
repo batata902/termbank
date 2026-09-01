@@ -112,7 +112,7 @@ class Transfers:
     @classmethod
     def get_transfer(cls, t_id: str) -> Transfers | None:
         with db() as (_, cur):
-            t = cur.execute('SELECT * FROM transfers WHERE id=?', (t_id,)).fetchone()
+            t = cur.execute('SELECT t.id, t.value u.username AS source, u2.username AS destiny FROM transfers t JOIN users u ON u.id=t.source JOIN users u2 ON u2.id=t.destiny WHERE t.id=?', (t_id,)).fetchone()
         if t:
             return cls(
                 id = t['id'],
@@ -123,4 +123,16 @@ class Transfers:
         return None
 
     @classmethod
-    def list_user_transfs
+    def list_user_transfs(cls, user_id: str) -> list[Transfers]:
+        with db() as (_, cur):
+            query = cur.execute('SELECT id FROM transfers t WHERE t.source=? OR t.destiny=?', (user_id, user_id)).fetchall()
+        rows = [dict(row) for row in query]
+
+        transfs: list[Transfers] = []
+        for row in rows:
+            t: Transfers = cls.get_transfer(row['id'])
+            if t:
+                transfs.append(t)
+
+        return transfs
+

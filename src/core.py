@@ -1,4 +1,4 @@
-from src import User
+from src import User, Transfers
 from src.utils import Text
 
 import socket
@@ -12,8 +12,7 @@ INFO - Exibe as informaçẽos da sua sessão atual
 TRANSF destiny value - Transfere dinheiro para o destino especificado
 UPDATE key - Cria uma chave de transferencia para a sua conta
 LIST_T - Lista todas as suas transações
-
-\n$> '''
+$> '''
 
 class Bank:
     def __init__(self, host: str = '0.0.0.0', port=9000):
@@ -108,6 +107,17 @@ class Bank:
 
                 con.send(response)
 
+                continue
+
+            elif cmd[:6].upper() == 'LIST_T':
+                transfers: list[Transfers] = Transfers.list_user_transfs(user.id)
+                response: str = ''
+                for t in transfers:
+                    response += f'[+] id: {t.id} - source: {t.source} - destiny: {t.destiny} - value: {t.value}\n'
+
+                response = Text.render_response(response, 'R')
+                con.send(response)
+                
                 continue
 
             else:
