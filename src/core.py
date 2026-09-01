@@ -1,13 +1,19 @@
 from src import User
+from src.utils import Text
 
 import socket
 import threading
+
+BANNER: str = f''
 
 HELP: str = '''[CB] LISTA DE COMANDOS
 SALDO - Exibe o saldo existente na usa conta corrente
 INFO - Exibe as informaçẽos da sua sessão atual
 TRANSF destiny value - Transfere dinheiro para o destino especificado
-UPDATE key - Cria uma chave de transferencia para a sua conta\n$> '''
+UPDATE key - Cria uma chave de transferencia para a sua conta
+LIST_T - Lista todas as suas transações
+
+\n$> '''
 
 class Bank:
     def __init__(self, host: str = '0.0.0.0', port=9000):
@@ -54,36 +60,57 @@ class Bank:
 
     def handle_user(self, user: User, con: socket.socket):
         while True:
-            cmd: str = con.recv(1024).decode('utf-8').strip().upper()
+            cmd: str = con.recv(1024).decode('utf-8').strip()
 
-            if cmd == 'HELP':
+            if cmd.upper() == 'HELP':
                 con.send(HELP.encode('utf-8'))
                 continue
 
-            elif cmd == 'SALDO':
+            elif cmd.upper() == 'SALDO':
                 saldo: str = f'{(user.currency / 100):.2f}'.replace('.', ',')
-                con.send(
-                    f'[INFO] Saldo atual: {saldo}\n$> '.encode('utf-8')
-                    )
+                response = Text.render_response(f'Saldo atual: R$ {saldo}', 'R')
+
+                con.send(response)
                 continue
 
-            elif cmd == 'INFO':
+            elif cmd.upper() == 'INFO':
                 saldo: str = f'{(user.currency / 100):.2f}'.replace('.', ',')
-                infos: str = f'[id]: {user.id}\n[Username]: {user.username}\n[Currency]: {saldo}\n$> '
-                con.send(infos.encode('utf-8'))
+
+                infos: str = f'- id: {user.id}\n- Username: {user.username}\n- Currency: R$ {saldo}\n- Key: {user.key}'
+                response: bytes = Text.render_response(infos, 'R')
+                con.send(response)
                 continue
 
-            elif cmd.startswith('UDPATE'):
+            elif cmd[:6].upper() == 'UPDATE':
                 key = cmd.split(' ')[1]
 
                 success: bool = user.update_key(key)
                 if not success:
-                    con.send('[ERROR] A chave não pode ser atualizada.\n$> '.encode('utf-8'))
+                    response: bytes = Text.render_response('A chave não pode ser atualizada.', 'E')
+                    con.send(response)
                 else:
-                    con.send(f'[INFO] chave atualizada com sucesso -> {user.key}'.encode('utf-8'))
+                    response: bytes = Text.render_response(f'chave atualizada com sucesso -> {user.key}', 'I')
+                    con.send(response)
+
+                continue
+
+            elif cmd[:6].upper() == 'TRANSF':
+                destiny, value = cmd.split(' ')[-2:]
+
+
+
+                success: bool = user.transfer(destiny, value)
+                response = b''
+                if success:
+                    response = Text.render_response(f'Transferência para {destiny} no valor de R$ {value} bem sucedida', 'S')
+                else:
+                    response = Text.render_response(f'Erro ao transferir R$ {value} para {destiny}.', 'E')
+
+                con.send(response)
 
                 continue
 
             else:
-                con.send('Comando não encontrado\n'.encode('utf-8'))
+                response: bytes = Text.render_response(f'Comando {cmd[:6]} não encontrado.', 'E')
+                con.send(response)
                 continue

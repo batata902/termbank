@@ -22,9 +22,23 @@ class User:
     id: int
     username: str
     password: str
-    currency: int
+    _currency: int
     key: str
 
+    @property
+    def currency(self) -> int:
+        with db() as (_, cur):
+            self._currency = cur.execute('SELECT currency FROM users WHERE id = ?', (self.id,)).fetchone()['currency']
+        return self._currency
+
+    @currency.setter
+    def currency(self, value: int):
+        if not value:
+            raise ValueError('Currency não pode ser vazia')
+
+        self._currency = value
+
+        
     @classmethod
     def load_user(cls, user_id: int) -> User | None:
         with db() as (_, cur):
@@ -36,7 +50,7 @@ class User:
             id = user['id'],
             username = user['username'],
             password = user['password'],
-            currency = user['currency'],
+            _currency = user['currency'],
             key = user['key']
             )   
 
@@ -61,3 +75,52 @@ class User:
 
         self.key = key
         return True
+
+
+    def transfer(self, destiny, value) -> bool:
+        with db() as (conn, cur):
+            try:
+                cur.execute('BEGIN IMMEDIATE') # Impede race conditions aqui
+                dest = cur.execute('SELECT * FROM users WHERE key=?;', (destiny,)).fetchone()
+
+                if dest:
+                    cur.execute('UPDATE users SET currency=currency - ? WHERE id=?', (value, self.id))
+                    if cur.rowcount == 0:
+                        conn.rollback()
+                        return False
+
+                    cur.execute('UPDATE users SET currency=currency + ? WHERE id=?', (value, dest['id']))
+
+                    conn.commit()
+                    self._currency -= int(value)
+
+                    return True
+                
+            except (sqlite3.Error, ValueError):
+                conn.rollback()
+                return False
+
+        return False
+
+@dataclass
+class Transfers:
+    id: int
+    source: str
+    destiny: str
+    value: int
+
+    @classmethod
+    def get_transfer(cls, t_id: str) -> Transfers | None:
+        with db() as (_, cur):
+            t = cur.execute('SELECT * FROM transfers WHERE id=?', (t_id,)).fetchone()
+        if t:
+            return cls(
+                id = t['id'],
+                source = t['source'],
+                destiny = t['destiny'],
+                value = t['value']
+            )
+        return None
+
+    @classmethod
+    def list_user_transfs
