@@ -3,6 +3,9 @@ from src.utils import Response
 
 import socket
 import threading
+import json
+import pickle
+import base64
 
 BANNER: str = 'CryptaBank Account System :: v1.0 :: CBAS\n'
 
@@ -40,6 +43,7 @@ class Bank:
     def handle_login(self, con: socket.socket, client):
         con.send(BANNER.encode('utf-8'))
 
+        user: User | None = None
         username: str = ''
         password: str = ''
         while True:
@@ -50,6 +54,34 @@ class Bank:
             cmd = data[0].upper()
             args = data[1:]
 
+            func = self.commands.get(cmd)
+            if not func:
+                response = Response.render_response({'error': 'Invalid command'}, 'E')
+                con.send(response)
+                continue
+
+            ex = json.loads(func(None, args).decode('utf-8'))
+
+            if cmd == 'LOGIN':
+                username = ex['RESPONSE']['data']
+
+                response = Response.render_response('OK', 'S')
+                con.send(response)
+                continue
+
+            elif cmd == 'PASSWORD':
+                password = ex['RESPONSE']['data']
+                user = User.log_in(username, password)
+
+                if user:
+                    response = Response.render_response('LOGGED_IN', 'S')
+                    con.send(response)
+                    return self.handle_user(user, con)
+                    
+                response = Response.render_response('Invalid Username or Password', 'E')
+                con.send(response)
+                continue
+
             if username and cmd != 'PASSWORD':
                 response = Response.render_response({'error':'After LOGIN command, PASSWORD is required.'}, 'E')
 
@@ -58,25 +90,14 @@ class Bank:
 
                 return
 
-            if cmd == 'LOGIN':
-                username = args[0]
+            if cmd == 'IMPORT':
+                session = ex['RESPONSE']['data']
+                print(pickle.loads(base64.b64decode(session)))
 
-                con.send(b'OK\n')
+                con.send(b'JEGUE')
+
                 continue
 
-            if cmd == 'PASSWORD':
-                password = args[0]
-
-                user: User = User.log_in(username, password)
-                if not user:
-                    response = Response.render_response({'error': 'Invalid username or password'}, 'E')
-                    con.send(response)
-                    con.close()
-                    return
-                
-                con.send('SUCCESS\n'.encode('utf-8'))
-
-                return self.handle_user(user, con)
 
     def command(self, cmd: str, help: str = ''):
         def wrapper(func):

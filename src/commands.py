@@ -1,10 +1,11 @@
 from src import bank, User, Transfers
-from src.utils import Response, AC
+from src.utils import Response
+
 
 def require_auth(f):
     def wrapper(session: User, *args, **kwargs):
         if not User.load_user(session.id):
-            return Response.render_response('Not authorized', 'E')
+            return Response.render_response({'error': 'Not authorized'}, 'E')
         return f(session, *args, **kwargs)
     return wrapper
 
@@ -14,7 +15,7 @@ def require_auth(f):
 def help(_session, _args) -> bytes:
     return Response.render_response({'help': bank.help()}, 'S')
 
-@bank.command('SALDO', help='Exibe o saldo da sua conta')
+@bank.command('BALANCE', help='Exibe o saldo da sua conta')
 @require_auth
 def saldo(session: User, _) -> bytes:
     saldo_ = f'{(session.currency / 100):.2f}'.replace('.', ',')
@@ -90,4 +91,20 @@ def list_transfers(session: User, _) -> bytes:
 
         t['value'] = int(t['value']) / 100
 
-    return Response.render_response(transfer, 'S')
+    return Response.render_response(transfers, 'S')
+
+@bank.command('LOGIN', help='Recebe o username como parâmetro e inicia o processo de login')
+def login(_, args) -> bytes:
+    return Response.render_response(args[0], 'S')
+
+@bank.command('PASSWORD', help='Recebe a senha para o username digitado obrigatoriamente anterior')
+def password(_, args) -> bytes:
+    return Response.render_response(args[0], 'S')
+
+@bank.command('IMPORT', help='Importa uma sessão para o banco')
+def import_(_, args) -> bytes:
+    session_bytes = args[0].encode('utf-8')
+
+    print(session_bytes)
+
+    return Response.render_response(args[0], 'S')
