@@ -1,12 +1,12 @@
 from src import User
-from src.utils import Text
+from src.utils import Response
 
 import socket
 import threading
 
-BANNER: str = f''
+BANNER: str = 'CryptaBank Account System :: v1.0 :: CBAS\n'
 
-HELP: str = ''
+HELP: list[dict[str, str]] = []
 
 class Bank:
     def __init__(self):
@@ -38,46 +38,79 @@ class Bank:
             self.threads.append(t)
 
     def handle_login(self, con: socket.socket, client):
-        con.send('username: '.encode('utf-8'))
-        username: str = con.recv(1024).decode('utf-8').strip()
-        con.send('password: '.encode('utf-8'))
-        password: str = con.recv(1024).decode('utf-8').strip()
+        con.send(BANNER.encode('utf-8'))
 
-        user: User = User.log_in(username, password)
-        if not user:
-            con.send('[ERROR] Invalid username or password\n'.encode('utf-8'))
-            con.close()
-            return
-        
-        con.send('[OK] Welcome to CryptaBank Systems!\n'
-                 'Digite HELP para opções de comando\n'
-                 '$> '.encode('utf-8'))
+        username: str = ''
+        password: str = ''
+        while True:
+            data = con.recv(1024).decode('utf-8').strip().split()
+            if not data:
+                return
 
-        self.handle_user(user, con)
+            cmd = data[0].upper()
+            args = data[1:]
+
+            if username and cmd != 'PASSWORD':
+                response = Response.render_response({'error':'After LOGIN command, PASSWORD is required.'}, 'E')
+
+                con.send(response)
+                con.close()
+
+                return
+
+            if cmd == 'LOGIN':
+                username = args[0]
+
+                con.send(b'OK\n')
+                continue
+
+            if cmd == 'PASSWORD':
+                password = args[0]
+
+                user: User = User.log_in(username, password)
+                if not user:
+                    response = Response.render_response({'error': 'Invalid username or password'}, 'E')
+                    con.send(response)
+                    con.close()
+                    return
+                
+                con.send('SUCCESS\n'.encode('utf-8'))
+
+                return self.handle_user(user, con)
 
     def command(self, cmd: str, help: str = ''):
         def wrapper(func):
             global HELP
+            HELP.append({cmd: help})
+
             self.commands[cmd] = func
-            HELP += f'{cmd} - {help}\n'
+
             return func
         return wrapper
 
 
     def handle_user(self, user: User, con: socket.socket):
         while True:
-            data: str = con.recv(1024).decode('utf-8').strip().split()
+            data: bytes = con.recv(1024)
+
             if not data:
                 con.close()
                 return
 
+            data: str = data.decode('utf-8').strip().split()
+
             cmd = data[0].upper()
             args = data[1:]
+
+            if cmd == 'EXIT':
+                con.send(b'Bye')
+                con.close()
+                return
 
             func = self.commands.get(cmd)
 
             if not func:
-                response = Text.render_response('Invalid command', 'E')
+                response = Response.render_response('Invalid command', 'E')
                 con.send(response)
                 continue
 

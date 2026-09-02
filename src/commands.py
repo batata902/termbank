@@ -1,33 +1,39 @@
 from src import bank, User, Transfers
-from src.utils import Text, AC
+from src.utils import Response, AC
 
 def require_auth(f):
     def wrapper(session: User, *args, **kwargs):
         if not User.load_user(session.id):
-            return Text.render_response('Not authorized', 'E')
+            return Response.render_response('Not authorized', 'E')
         return f(session, *args, **kwargs)
     return wrapper
+
 
 @bank.command('HELP', help='Exibe essa mensagem')
 @require_auth
 def help(_session, _args) -> bytes:
-    return Text.render_response(bank.help(), 'R')
+    return Response.render_response({'help': bank.help()}, 'S')
 
 @bank.command('SALDO', help='Exibe o saldo da sua conta')
 @require_auth
 def saldo(session: User, _) -> bytes:
     saldo_ = f'{(session.currency / 100):.2f}'.replace('.', ',')
 
-    return  Text.render_response(f'Saldo atual: R$ {saldo_}', 'R')
+    return  Response.render_response({'currency': saldo_}, 'S')
 
 
 @bank.command('INFO', help='Exibe as informações da sua conta')
 @require_auth
 def info(session: User, _) -> bytes:
     saldo = f'{(session.currency / 100):.2f}'.replace('.', ',')
-    infos = f'- id: {session.id}\n- Username: {session.username}\n- Currency: R$ {saldo}\n- Key: {session.key}'
+    infos = {
+        'id': session.id, 
+        'username': session.username, 
+        'currency': saldo, 
+        'key': session.key
+        }
 
-    return Text.render_response(infos, 'R')    
+    return Response.render_response(infos, 'S')    
 
 
 @bank.command('UPDATE', help='Atualiza a sua chave de transferência')
@@ -38,13 +44,13 @@ def update_key(session: User, args: list[str]) -> bytes:
 
         success: bool = session.update_key(key)
         if not success:
-            return Text.render_response('A chave não pode ser atualizada.', 'E')
+            return Response.render_response({'error': 'A chave não pode ser atualizada.'}, 'E')
         
-        return Text.render_response(f'chave atualizada com sucesso -> {session.key}', 'I')
+        return Response.render_response({'key': session.key}, 'S')
     elif len(args) > 1:
-        return Text.render_response('UPDATE command takes only 1 argumment', 'E')
+        return Response.render_response({'error': 'UPDATE command takes only 1 argumment'}, 'E')
 
-    return Text.render_response('UPDATE command takes at least 1 argumment', 'E')
+    return Response.render_response({'error': 'UPDATE command takes at least 1 argumment'}, 'E')
 
 
 @bank.command('TRANSFER', help='Transfere valor x para a conta y (Ex: TRANSFER conta_y valor_x)')
@@ -54,28 +60,34 @@ def transfer(session: User, args: list) -> bytes:
         destiny = args[0] 
 
         try:
-            value = int(args[1])
+            value = int(float(args[1]) * 100)
         except ValueError:
-            return Text.render_response(f'Invalid value {value}', 'E')
+            return Response.render_response({'error': 'Invalid value'}, 'E')
 
         if session.transfer(destiny, value):
-            return Text.render_response(f'Transferência para {destiny} no valor de R$ {value} bem sucedida', 'S')
+            return Response.render_response(f'Transferência para {destiny} no valor de R$ {value / 100} bem sucedida', 'S')
         
-        return Text.render_response(f'Erro ao transferir R$ {value} para {destiny}.', 'E')
+        return Response.render_response({'error': f'Não é possível transferir R$ {value / 100} para {destiny}.'}, 'E')
 
-    return Text.render_response('Invalid argumments number', 'E')
+    return Response.render_response({'error': 'Invalid argumments number'}, 'E')
 
 
 @bank.command('LIST_T', help='Lista todas as transferências realizadas')
 @require_auth
 def list_transfers(session: User, _) -> bytes:
-    transfers: list[Transfers] = Transfers.list_user_transfs(session.id)
+    transfers: list[dict[str, str]] = Transfers.list_user_transfs(session.id)
 
-    response = ''
     for t in transfers:
-        prefix: str = f'[{AC.G}+{AC.E}]'
         if t['source'] == session.id:
-            prefix = f'[{AC.R}-{AC.E}]'
-        response += f'{prefix} id: {t['id']} - source: {t['source']} - destiny: {t['destiny']} - value: {int(t['value']) / 100}\n'
+            t['flow'] = 'out'
+            t['source'] = session.username
+            t['destiny'] = User.load_user(t['destiny']).username
 
-    return Text.render_response(response, 'R')
+        if t['destiny'] == session.id:
+            t['flow'] = 'in'
+            t['destiny'] = session.username
+            t['source'] = User.load_user(t['source']).username
+
+        t['value'] = int(t['value']) / 100
+
+    return Response.render_response(transfer, 'S')

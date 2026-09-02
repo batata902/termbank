@@ -1,3 +1,5 @@
+import json
+
 class AC:
     R = '\033[31m'
     G = '\033[32m'
@@ -5,19 +7,18 @@ class AC:
     B = '\033[34m'
     E = '\033[m'
 
-class Text:
-    @staticmethod # flags = 'E': Erro, 'S': Sucesso, 'I': Info, 'R': Response
-    def render_response(text: str, flag: str) -> bytes:
-        fac: str = ''
-        if flag[0] == 'E':
-            fac = f'[ {AC.R}ERROR{AC.E} ] {text}'
-        elif flag[0] == 'S':
-            fac = f'[ {AC.G}SUCCESS{AC.E} ] {text}'
-        elif flag[0] == 'I':
-            fac = f'[ {AC.Y}INFO{AC.E} ] {text}'
-        else:
-            fac = f'[ {AC.G}RESPONSE{AC.E} ]\n{text}'
+class Response:
+    @staticmethod # flags = 'E': Erro, 'S': Sucesso
+    def render_response(data: str, flag: str) -> bytes:
+        response = {'RESPONSE': {}}
 
-        fac += '\n$> '
+        if flag == 'E':
+            response['RESPONSE']['status'] = 100 # Error
+            response['RESPONSE']['data'] = data
 
-        return fac.encode('utf-8')
+        elif flag == 'S':
+            response['RESPONSE']['status'] = 200 # Success
+            response['RESPONSE']['data'] = data
+     
+        res: str = json.dumps(response) + '\n'
+        return res.encode('utf-8')

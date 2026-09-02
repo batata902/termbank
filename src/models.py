@@ -78,10 +78,15 @@ class User:
 
 
     def transfer(self, destiny, value) -> bool:
-        value = int(value) * 100
+        value = int(value)
+
+        if value > self.currency:
+            return False
+        
         with db() as (conn, cur):
             try:
                 cur.execute('BEGIN IMMEDIATE') # Impede race conditions aqui
+
                 dest = cur.execute('SELECT * FROM users WHERE key=?;', (destiny,)).fetchone()
 
                 if dest:
