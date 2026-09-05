@@ -10,15 +10,15 @@ class AC:
 class Response:
     @staticmethod # flags = 'E': Erro, 'S': Sucesso
     def render_response(data: str, flag: str) -> bytes:
-        response = {'RESPONSE': {}}
+        response = {}
 
         if flag == 'E':
-            response['RESPONSE']['status'] = 100 # Error
-            response['RESPONSE']['data'] = data
+            response['status'] = 100 # Error
+            response['data'] = data
 
         elif flag == 'S':
-            response['RESPONSE']['status'] = 200 # Success
-            response['RESPONSE']['data'] = data
+            response['status'] = 200 # Success
+            response['data'] = data
      
         res: str = json.dumps(response) + '\n'
         return res.encode('utf-8')

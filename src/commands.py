@@ -1,110 +1,142 @@
 from src import bank, User, Transfers
 from src.utils import Response
+from src.session import Session
+
+import base64
+import pickle
 
 
 def require_auth(f):
-    def wrapper(session: User, *args, **kwargs):
-        if not User.load_user(session.id):
-            return Response.render_response({'error': 'Not authorized'}, 'E')
+    def wrapper(session: Session, *args, **kwargs):
+        if not session.user:
+            return Response.render_response('Not authorized', 'E')
         return f(session, *args, **kwargs)
     return wrapper
 
 
 @bank.command('HELP', help='Exibe essa mensagem')
-@require_auth
-def help(_session, _args) -> bytes:
-    return Response.render_response({'help': bank.help()}, 'S')
+def help(*_) -> bytes:
+    return Response.render_response(bank.help(), 'S')
 
 @bank.command('BALANCE', help='Exibe o saldo da sua conta')
 @require_auth
-def saldo(session: User, _) -> bytes:
-    saldo_ = f'{(session.currency / 100):.2f}'.replace('.', ',')
+def saldo(session: Session, _) -> bytes:
+    saldo_ = f'{(session.user.currency / 100):.2f}'.replace('.', ',')
 
-    return  Response.render_response({'currency': saldo_}, 'S')
+    return  Response.render_response(saldo_, 'S')
 
 
 @bank.command('INFO', help='Exibe as informações da sua conta')
 @require_auth
-def info(session: User, _) -> bytes:
-    saldo = f'{(session.currency / 100):.2f}'.replace('.', ',')
+def info(session: Session, _) -> bytes:
+    saldo = f'{(session.user.currency / 100):.2f}'.replace('.', ',')
     infos = {
-        'id': session.id, 
-        'username': session.username, 
+        'id': session.user.id, 
+        'username': session.user.username, 
         'currency': saldo, 
-        'key': session.key
+        'key': session.user.key
         }
 
     return Response.render_response(infos, 'S')    
 
 
-@bank.command('UPDATE', help='Atualiza a sua chave de transferência')
+@bank.command('UPDATE', help='Atualiza a sua chave de transferência ($> UPDATE newkey)')
 @require_auth
-def update_key(session: User, args: list[str]) -> bytes:
+def update_key(session: Session, args: list[str]) -> bytes:
     if len(args) == 1:
         key: str = args[0]
 
-        success: bool = session.update_key(key)
+        success: bool = session.user.update_key(key)
         if not success:
-            return Response.render_response({'error': 'A chave não pode ser atualizada.'}, 'E')
+            return Response.render_response('A chave não pode ser atualizada.', 'E')
         
-        return Response.render_response({'key': session.key}, 'S')
+        return Response.render_response(session.user.key, 'S')
     elif len(args) > 1:
-        return Response.render_response({'error': 'UPDATE command takes only 1 argumment'}, 'E')
+        return Response.render_response('UPDATE command takes only 1 argumment', 'E')
 
-    return Response.render_response({'error': 'UPDATE command takes at least 1 argumment'}, 'E')
+    return Response.render_response('UPDATE command takes at least 1 argumment', 'E')
 
 
 @bank.command('TRANSFER', help='Transfere valor x para a conta y (Ex: TRANSFER conta_y valor_x)')
 @require_auth
-def transfer(session: User, args: list) -> bytes:
+def transfer(session: Session, args: list) -> bytes:
     if len(args) == 2:
         destiny = args[0] 
 
         try:
             value = int(float(args[1]) * 100)
         except ValueError:
-            return Response.render_response({'error': 'Invalid value'}, 'E')
+            return Response.render_response('Invalid value', 'E')
 
-        if session.transfer(destiny, value):
+        if session.user.transfer(destiny, value):
             return Response.render_response(f'Transferência para {destiny} no valor de R$ {value / 100} bem sucedida', 'S')
         
-        return Response.render_response({'error': f'Não é possível transferir R$ {value / 100} para {destiny}.'}, 'E')
+        return Response.render_response(f'Não é possível transferir R$ {value / 100} para {destiny}.', 'E')
 
-    return Response.render_response({'error': 'Invalid argumments number'}, 'E')
+    return Response.render_response('Invalid argumments number', 'E')
 
 
 @bank.command('LIST_T', help='Lista todas as transferências realizadas')
 @require_auth
-def list_transfers(session: User, _) -> bytes:
-    transfers: list[dict[str, str]] = Transfers.list_user_transfs(session.id)
+def list_transfers(session: Session, _) -> bytes:
+    transfers: list[dict[str, str]] = Transfers.list_user_transfs(session.user.id)
 
     for t in transfers:
-        if t['source'] == session.id:
+        if t['source'] == session.user.id:
             t['flow'] = 'out'
-            t['source'] = session.username
+            t['source'] = session.user.username
             t['destiny'] = User.load_user(t['destiny']).username
 
-        if t['destiny'] == session.id:
+        if t['destiny'] == session.user.id:
             t['flow'] = 'in'
-            t['destiny'] = session.username
+            t['destiny'] = session.user.username
             t['source'] = User.load_user(t['source']).username
 
         t['value'] = int(t['value']) / 100
 
     return Response.render_response(transfers, 'S')
 
-@bank.command('LOGIN', help='Recebe o username como parâmetro e inicia o processo de login')
-def login(_, args) -> bytes:
-    return Response.render_response(args[0], 'S')
 
-@bank.command('PASSWORD', help='Recebe a senha para o username digitado obrigatoriamente anterior')
-def password(_, args) -> bytes:
-    return Response.render_response(args[0], 'S')
+@bank.command('LOGIN', help='Recebe o username como argumento e inicia o processo de login')
+def login(session: Session, args) -> bytes:
+    session.username = args[0]
+
+    return Response.render_response('OK', 'S')
+
+
+@bank.command('PASSWORD', help='Recebe a senha para o username digitado anteriormente')
+def password(session: Session, args) -> bytes:
+    if not session.username:
+        return Response.render_response('LOGIN was not given', 'E')
+
+    session.user = User.log_in(session.username, args[0])
+    if not session.user:
+        return Response.render_response('Invalid LOGIN or PASSWORD', 'E')
+    
+    return Response.render_response('WELCOME', 'S')
+
 
 @bank.command('IMPORT', help='Importa uma sessão para o banco')
-def import_(_, args) -> bytes:
-    session_bytes = args[0].encode('utf-8')
+def import_(session: Session, args) -> bytes:
+    session_bytes = base64.b64decode(args[0])
 
-    print(session_bytes)
+    try:
+        desserial_session: Session = pickle.loads(session_bytes)
+    except:
+        return Response.render_response('Erro ao carregar sessão', 'E')
 
-    return Response.render_response(args[0], 'S')
+    try:
+        session.load_session(desserial_session)
+    except AttributeError:
+        return Response.render_response('Arquivo de sessão inválido', 'E')
+
+    return Response.render_response('WELCOME', 'S')
+
+
+@bank.command('EXPORT', help='Exporta a sessão atual')
+@require_auth
+def export_(session: Session, _) -> bytes:
+    serialized_session: str = base64.b64encode(pickle.dumps(session)).decode('utf-8')
+
+    return Response.render_response(serialized_session, 'S')
+
