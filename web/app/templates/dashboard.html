@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CryptaBank — Painel de Cartões</title>
+  <style>
+    /* ==========================================================================
+        1. COLOR TOKENS & VARIABLES (CryptaBank Design System)
+       ========================================================================== */
+    :root {
+      --solar-gold: #fac203;
+      --solar-gold-hover: #e0ac02;
+      --obsidian: #000000;
+      --ivory-sand: #fff4ec;
+      --horizon-blue: #e8f1ff;
+      --white: #ffffff;
+      
+      --gray-900: #1a1a1a;
+      --gray-800: #242424;
+      --gray-700: #333333;
+      --gray-600: #4d4d4d;
+      --gray-400: #8a8a8a;
+      --input-bg: #121212;
+
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+      --space-1: 8px;
+      --space-2: 16px;
+      --space-3: 24px;
+      --space-4: 32px;
+      --space-5: 40px;
+
+      --radius: 8px;
+      --radius-sm: 4px;
+      
+      --transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+    }
+
+    /* ==========================================================================
+        2. RESET & BASE STYLES
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--obsidian);
+      color: var(--white);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+      justify-content: center;
+    }
+
+    button, input, select {
+      font-family: inherit;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--solar-gold);
+      outline-offset: 3px;
+    }
+
+    /* ==========================================================================
+        3. APP LAYOUT
+       ========================================================================== */
+    .app-container {
+      display: flex;
+      width: 100%;
+      max-width: 1200px;
+      min-height: 100vh;
+    }
+
+    /* ==========================================================================
+        4. MAIN CONTENT AREA
+       ========================================================================== */
+    .main-content {
+      flex: 1;
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      border-bottom: 1px solid var(--gray-700);
+      padding-bottom: var(--space-3);
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.5px;
+    }
+
+    .brand span {
+      color: var(--solar-gold);
+    }
+
+    .page-title h1 {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .search-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    /* Primary Button Token */
+    .btn-primary {
+      background-color: var(--solar-gold);
+      color: var(--obsidian);
+      border: none;
+      border-radius: var(--radius);
+      min-height: 44px;
+      padding: 0 var(--space-3);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      transition: var(--transition);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--solar-gold-hover);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      border: 1px solid var(--gray-700);
+      color: var(--white);
+      border-radius: var(--radius);
+      min-height: 40px;
+      padding: 0 var(--space-2);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--solar-gold);
+      color: var(--solar-gold);
+    }
+
+    /* Total Balance Banner */
+    .balance-banner {
+      background-color: var(--gray-900);
+      border: 1px solid var(--gray-700);
+      border-radius: var(--radius);
+      padding: var(--space-3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .balance-label {
+      color: var(--gray-400);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .balance-amount {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--solar-gold);
+    }
+
+    /* ==========================================================================
+        5. CARDS GRID
+       ========================================================================== */
+    .cards-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-2);
+    }
+
+    .bank-card {
+      background: linear-gradient(135deg, #242424 0%, #121212 100%);
+      border: 1px solid var(--gray-700);
+      border-radius: var(--radius);
+      padding: var(--space-3);
+      height: 170px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .bank-card:hover {
+      border-color: var(--solar-gold);
+      transform: translateY(-2px);
+    }
+
+    .bank-card.active-card {
+      border: 2px solid var(--solar-gold);
+      background: linear-gradient(135deg, #2a2410 0%, #1a1a1a 100%);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-brand {
+      font-weight: 800;
+      font-style: italic;
+      font-size: 18px;
+      letter-spacing: 1px;
+    }
+
+    .card-chip {
+      width: 32px;
+      height: 24px;
+      background-color: var(--solar-gold);
+      border-radius: 4px;
+      opacity: 0.8;
+    }
+
+    .card-number {
+      font-size: 16px;
+      letter-spacing: 2px;
+      font-family: monospace;
+      color: var(--ivory-sand);
+    }
+
+    .card-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .card-holder {
+      font-size: 13px;
+      color: var(--white);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .card-expiry {
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+
+    /* ==========================================================================
+        6. DASHBOARD PANELS
+       ========================================================================== */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+    }
+
+    .panel {
+      background-color: var(--gray-900);
+      border: 1px solid var(--gray-700);
+      border-radius: var(--radius);
+      padding: var(--space-3);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--gray-700);
+      padding-bottom: var(--space-2);
+    }
+
+    .manage-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px var(--space-2);
+      border-radius: var(--radius);
+      background-color: var(--input-bg);
+      border: 1px solid var(--gray-700);
+      transition: var(--transition);
+    }
+
+    .manage-item:hover {
+      border-color: var(--gray-600);
+    }
+
+    .manage-item-info {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .manage-actions-row {
+      display: flex;
+      gap: var(--space-1);
+      margin-top: var(--space-1);
+    }
+
+    /* Transactions List */
+    .transaction-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .transaction-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--gray-800);
+    }
+
+    .transaction-item:last-child {
+      border-bottom: none;
+    }
+
+    .tx-details {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .tx-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .tx-date {
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+
+    .tx-amount {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* ==========================================================================
+        7. MODALS
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: none;
+      place-items: center;
+      z-index: 1000;
+      padding: var(--space-2);
+    }
+
+    .modal-overlay.active {
+      display: grid;
+    }
+
+    .modal {
+      background-color: var(--gray-900);
+      border: 1px solid var(--gray-700);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 480px;
+      padding: var(--space-3);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--gray-400);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .close-btn:hover {
+      color: var(--white);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .form-group label {
+      font-size: 13px;
+      color: var(--gray-400);
+    }
+
+    .form-input {
+      background-color: var(--input-bg);
+      border: 1px solid var(--gray-700);
+      border-radius: var(--radius);
+      min-height: 44px;
+      padding: 0 var(--space-2);
+      color: var(--white);
+      font-size: 14px;
+    }
+
+    .card-data-box {
+      background-color: var(--input-bg);
+      border: 1px dashed var(--gray-700);
+      padding: var(--space-2);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+
+    .data-label {
+      color: var(--gray-400);
+    }
+
+    .data-value {
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    /* ==========================================================================
+        8. RESPONSIVE DESIGN
+       ========================================================================== */
+    @media (max-width: 900px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <main class="main-content">
+      
+      <!-- TOP BAR -->
+      <header class="top-bar">
+        <div class="brand">
+          Crypta<span>Bank</span>
+        </div>
+        <div class="page-title">
+          <h1>Painel Financeiro</h1>
+        </div>
+        
+        <div class="search-actions">
+          <button class="btn-primary" onclick="openModal('transferModal')">
+            <span>+</span> Realizar Transferência
+          </button>
+          <button class="btn-primary" onclick="openModal('addModal')">
+            <span>+</span> Cadastrar Cartão
+          </button>
+        </div>
+      </header>
+
+      <!-- SALDO EM GRANDE DESTAQUE -->
+      <section class="balance-banner">
+        <div>
+          <div class="balance-label">Saldo Total Consolidado</div>
+          <div class="balance-amount" id="totalBalanceDisplay">Carregando...</div>
+        </div>
+        <button class="btn-secondary" onclick="toggleBalanceHide()" id="hideBtn">
+          Ocultar
+        </button>
+      </section>
+
+      <!-- LISTA DE CARTÕES -->
+      <section>
+        <div class="cards-section-header" style="margin-bottom: var(--space-2);">
+          <h2 class="section-title">Cartões Ativos</h2>
+        </div>
+        <div class="cards-grid" id="cardsGrid">
+          <!-- Renderizado via API real -->
+        </div>
+      </section>
+
+      <!-- GERENCIAMENTO & TRANSAÇÕES -->
+      <section class="dashboard-grid">
+        
+        <!-- PAINEL 1: Gerenciamento do Cartão Selecionado -->
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="section-title">Gerenciar Cartão</h2>
+            <span id="selectedCardLabel" style="font-size: 12px; color: var(--solar-gold); font-weight: 600;">Selecione um cartão</span>
+          </div>
+
+          <div class="manage-item">
+            <div class="manage-item-info">
+              <span>Dados Sigilosos do Cartão</span>
+            </div>
+            <button class="btn-secondary" onclick="openDetailsModal()">Visualizar</button>
+          </div>
+
+          <div class="manage-item">
+            <div class="manage-item-info">
+              <span>Bloqueio de Segurança</span>
+            </div>
+            <button class="btn-secondary" onclick="toggleBlockSelectedCard()" id="blockBtn">Bloquear</button>
+          </div>
+
+          <div class="manage-actions-row">
+            <button class="btn-secondary" style="flex: 1;" onclick="openEditModal()">Editar Cartão</button>
+            <button class="btn-secondary" style="flex: 1; border-color: #ff4d4d; color: #ff4d4d;" onclick="deleteSelectedCard()">Excluir Cartão</button>
+          </div>
+        </div>
+
+        <!-- PAINEL 2: Histórico de Transações -->
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="section-title">Últimas Transações</h2>
+            <span style="font-size: 12px; color: var(--gray-400);">Recentes</span>
+          </div>
+
+          <div class="transaction-list" id="transactionList">
+            <!-- Renderizado via API real -->
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       MODAIS 
+       ========================================================================== -->
+
+  <!-- MODAL TRANSFERÊNCIA -->
+  <div class="modal-overlay" id="transferModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Nova Transferência</h3>
+        <button class="close-btn" onclick="closeModal('transferModal')">&times;</button>
+      </div>
+      <form id="transferForm" onsubmit="handleTransfer(event)">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label>Chave Pix / Conta de Destino</label>
+          <input type="text" id="transferDest" class="form-input" required placeholder="CPF, E-mail ou Chave">
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label>Valor da Transferência (R$)</label>
+          <input type="number" step="0.01" id="transferValue" class="form-input" required placeholder="0.00">
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">Enviar Transferência</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL CADASTRAR CARTÃO (Simplificado) -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Cadastrar Novo Cartão</h3>
+        <button class="close-btn" onclick="closeModal('addModal')">&times;</button>
+      </div>
+      <form id="addCardForm" onsubmit="handleAddCard(event)">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label>Nome no Cartão</label>
+          <input type="text" class="form-input" id="addHolder" required placeholder="Ex: NOME COMPLETO">
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label>Confirmação por Senha</label>
+          <input type="password" class="form-input" id="addPassword" required placeholder="Insira sua senha de 6 dígitos">
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">Cadastrar Cartão</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR CARTÃO (Sem bandeira) -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Editar Cartão</h3>
+        <button class="close-btn" onclick="closeModal('editModal')">&times;</button>
+      </div>
+      <form id="editCardForm" onsubmit="handleEditCard(event)">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label>Nome no Cartão</label>
+          <input type="text" class="form-input" id="editHolder" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">Atualizar Alterações</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL VER DADOS DO CARTÃO -->
+  <div class="modal-overlay" id="detailsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Dados do Cartão</h3>
+        <button class="close-btn" onclick="closeModal('detailsModal')">&times;</button>
+      </div>
+      <div class="card-data-box">
+        <div class="data-row">
+          <span class="data-label">Titular:</span>
+          <span class="data-value" id="detailHolder">-</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Número do Cartão:</span>
+          <span class="data-value" id="detailNumber">**** **** **** ****</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Validade:</span>
+          <span class="data-value" id="detailExpiry">--/--</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Código CVV:</span>
+          <span class="data-value" id="detailCvv">***</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Status:</span>
+          <span class="data-value" id="detailStatus" style="color: #4cd964;">Ativo</span>
+        </div>
+      </div>
+      <button class="btn-secondary" onclick="fetchSensitiveData()" id="toggleDataBtn" style="justify-content: center;">
+        Revelar Dados
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT / CHAMADAS DE API REAIS
+       ========================================================================== -->
+  <script>
+    let cards = [];
+    let transactions = [];
+    let accountData = {};
+    let selectedCardId = null;
+    let hideBalance = false;
+    let revealSensitive = false;
+
+    // Configuração base da API (Substituir pela URL do backend real)
+    const API_BASE_URL = "/api";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadAllAppData();
+    });
+
+    // Chamadas de API Gerais para carregar o painel
+    async function loadAllAppData() {
+      try {
+        await Promise.all([
+          fetchCards(),
+          fetchBalance(),
+          fetchTransactions()
+        ]);
+      } catch (error) {
+        console.error("Erro ao conectar com a API:", error);
+      }
+    }
+
+    async function fetchCards() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/cards`);
+        if (!response.ok) throw new Error("Falha ao buscar cartões");
+        cards = await response.json();
+        if (cards.length > 0 && !selectedCardId) {
+          selectedCardId = cards[0].id;
+        }
+        renderCards();
+        updateDashboardInfo();
+      } catch (error) {
+        document.getElementById("cardsGrid").innerHTML = `<p style="color: var(--gray-400);">Falta fazer api para essa funcionalidade</p>`;
+      }
+    }
+
+    async function fetchBalance() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/balance`);
+        if (!response.ok) throw new Error("Falha ao buscar saldo");
+        const data = await response.json();
+        accountData.totalBalance = data.balance;
+        calculateTotalBalance();
+      } catch (error) {
+        document.getElementById("totalBalanceDisplay").innerText = "Falta fazer api para essa funcionalidade";
+      }
+    }
+
+    async function fetchTransactions() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/transactions`);
+        if (!response.ok) throw new Error("Falha ao buscar histórico");
+        transactions = await response.json();
+        renderTransactions();
+      } catch (error) {
+        document.getElementById("transactionList").innerHTML = `<p style="color: var(--gray-400); font-size: 13px;">Falta fazer api para essa funcionalidade</p>`;
+      }
+    }
+
+    function formatCurrency(value) {
+      if (isNaN(value)) return value;
+      return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function renderCards() {
+      const grid = document.getElementById("cardsGrid");
+      grid.innerHTML = "";
+
+      cards.forEach(card => {
+        const isSelected = card.id === selectedCardId;
+        const formattedNum = "**** " + (card.number ? card.number.slice(-4) : "0000");
+        
+        const cardEl = document.createElement("div");
+        cardEl.className = `bank-card ${isSelected ? 'active-card' : ''}`;
+        cardEl.onclick = () => selectCard(card.id);
+
+        cardEl.innerHTML = `
+          <div class="card-top">
+            <span class="card-brand">${card.brand || 'Crypta'}</span>
+            <div class="card-chip"></div>
+          </div>
+          <div class="card-number">${formattedNum}</div>
+          <div class="card-bottom">
+            <div>
+              <div class="card-holder">${card.holder}</div>
+              <div class="card-expiry">VAL: ${card.expiry || '--/--'} ${card.blocked ? '(BLOQUEADO)' : ''}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 11px; color: var(--gray-400);">Saldo</div>
+              <div style="font-size: 14px; font-weight: 700; color: var(--solar-gold);">
+                ${formatCurrency(card.balance || 0)}
+              </div>
+            </div>
+          </div>
+        `;
+        grid.appendChild(cardEl);
+      });
+    }
+
+    function selectCard(id) {
+      selectedCardId = id;
+      renderCards();
+      updateDashboardInfo();
+    }
+
+    function updateDashboardInfo() {
+      const card = cards.find(c => c.id === selectedCardId);
+      const label = document.getElementById("selectedCardLabel");
+      const blockBtn = document.getElementById("blockBtn");
+
+      if (card) {
+        label.innerText = `${card.brand || 'Cartão'} (final ${card.number ? card.number.slice(-4) : ''})`;
+        blockBtn.innerText = card.blocked ? "Desbloquear" : "Bloquear";
+      } else {
+        label.innerText = "Nenhum cartão selecionado";
+      }
+    }
+
+    function calculateTotalBalance() {
+      const display = document.getElementById("totalBalanceDisplay");
+      if (hideBalance) {
+        display.innerText = "R$ ••••••••";
+      } else {
+        const total = cards.reduce((acc, c) => acc + (c.balance || 0), 0);
+        display.innerText = formatCurrency(accountData.totalBalance !== undefined ? accountData.totalBalance : total);
+      }
+    }
+
+    function toggleBalanceHide() {
+      hideBalance = !hideBalance;
+      document.getElementById("hideBtn").innerText = hideBalance ? "Mostrar" : "Ocultar";
+      calculateTotalBalance();
+    }
+
+    function renderTransactions() {
+      const list = document.getElementById("transactionList");
+      list.innerHTML = "";
+
+      transactions.forEach(tx => {
+        const item = document.createElement("div");
+        item.className = "transaction-item";
+        item.innerHTML = `
+          <div class="tx-details">
+            <div>
+              <div class="tx-name">${tx.name}</div>
+              <div class="tx-date">${tx.date}</div>
+            </div>
+          </div>
+          <div class="tx-amount" style="color: ${tx.amount && tx.amount.includes('+') ? '#4cd964' : 'inherit'}">${tx.amount}</div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // Modal Control Utils
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    // API: Realizar Transferência
+    async function handleTransfer(event) {
+      event.preventDefault();
+      const destination = document.getElementById("transferDest").value;
+      const value = document.getElementById("transferValue").value;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/transfers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ destination, value })
+        });
+        
+        if (!response.ok) throw new Error("Erro na transferência");
+        
+        alert("Transferência realizada com sucesso!");
+        closeModal('transferModal');
+        document.getElementById('transferForm').reset();
+        loadAllAppData();
+      } catch (error) {
+        alert("Falta fazer api para essa funcionalidade");
+      }
+    }
+
+    // API: Cadastrar Cartão (Somente Nome e Senha)
+    async function handleAddCard(event) {
+      event.preventDefault();
+      const holder = document.getElementById("addHolder").value.toUpperCase();
+      const password = document.getElementById("addPassword").value;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/cards`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ holder, password })
+        });
+
+        if (!response.ok) throw new Error("Erro ao cadastrar");
+        
+        alert("Cartão cadastrado com sucesso!");
+        closeModal("addModal");
+        document.getElementById("addCardForm").reset();
+        fetchCards();
+      } catch (error) {
+        alert("Falta fazer api para essa funcionalidade");
+      }
+    }
+
+    // API: Abrir Modal de Edição
+    function openEditModal() {
+      const card = cards.find(c => c.id === selectedCardId);
+      if (!card) return alert("Selecione um cartão para editar.");
+      document.getElementById("editHolder").value = card.holder;
+      openModal("editModal");
+    }
+
+    // API: Alterar Cartão
+    async function handleEditCard(event) {
+      event.preventDefault();
+      const holder = document.getElementById("editHolder").value.toUpperCase();
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/cards/${selectedCardId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ holder })
+        });
+
+        if (!response.ok) throw new Error("Erro ao editar");
+
+        alert("Cartão atualizado com sucesso!");
+        closeModal("editModal");
+        fetchCards();
+      } catch (error) {
+        alert("Falta fazer api para essa funcionalidade");
+      }
+    }
+
+    // API: Excluir Cartão
+    async function deleteSelectedCard() {
+      if (!selectedCardId) return alert("Selecione um cartão.");
+      if (!confirm("Tem certeza que deseja excluir este cartão?")) return;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/cards/${selectedCardId}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error("Erro ao excluir");
+
+        alert("Cartão excluído com sucesso!");
+        fetchCards();
+      } catch (error) {
+        alert("Falta fazer api para essa funcionalidade");
+      }
+    }
+
+    // API: Bloquear / Desbloquear Cartão
+    async function toggleBlockSelectedCard() {
+      const card = cards.find(c => c.id === selectedCardId);
+      if (!card) return;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/cards/${selectedCardId}/block`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ blocked: !card.blocked })
+        });
+
+        if (!response.ok) throw new Error("Erro ao alterar bloqueio");
+
+        card.blocked = !card.blocked;
+        renderCards();
+        updateDashboardInfo();
+      } catch (error) {
+        alert("Falta fazer api para essa funcionalidade");
+      }
+    }
+
+    // API: Visualizar Dados Sigilosos
+    function openDetailsModal() {
+      const card = cards.find(c => c.id === selectedCardId);
+      if (!card) return;
+
+      revealSensitive = false;
+      document.getElementById("detailHolder").innerText = card.holder;
+      document.getElementById("detailExpiry").innerText = card.expiry || '--/--';
+      document.getElementById("detailNumber").innerText = "**** **** **** " + (card.number ? card.number.slice(-4) : "0000");
+      document.getElementById("detailCvv").innerText = "***";
+      document.getElementById("toggleDataBtn").innerText = "Revelar Dados";
+      
+      openModal("detailsModal");
+    }
+
+    async function fetchSensitiveData() {
+      if (revealSensitive) {
+        revealSensitive = false;
+        const card = cards.find(c => c.id === selectedCardId);
+        document.getElementById("detailNumber").innerText = "**** **** **** " + (card.number ? card.number.slice(-4) : "0000");
+        document.getElementById("detailCvv").innerText = "***";
+        document.getElementById("toggleDataBtn").innerText = "Revelar Dados";
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/cards/${selectedCardId}/sensitive`);
+        if (!response.ok) throw new Error("Erro ao buscar dados sigilosos");
+        const sensitiveData = await response.json();
+
+        revealSensitive = true;
+        document.getElementById("detailNumber").innerText = sensitiveData.number;
+        document.getElementById("detailCvv").innerText = sensitiveData.cvv;
+        document.getElementById("toggleDataBtn").innerText = "Ocultar Dados";
+      } catch (error) {
+        alert("Falta fazer api para essa funcionalidade");
+      }
+    }
+  </script>
+</body>
+</html>

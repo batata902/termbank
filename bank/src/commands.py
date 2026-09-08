@@ -1,4 +1,4 @@
-from src import bank, User, Transfers
+from src import bank, User, Transfers, Cards
 from src.utils import Response
 from src.session import Session
 
@@ -26,6 +26,54 @@ def saldo(session: Session, _) -> bytes:
     return  Response.render_response(saldo_, 'S')
 
 
+@bank.command('CREATE', help='Cria algo, opções: card "holder"')
+@require_auth
+def create(session: Session, args) -> bytes:
+    if len(args) < 2:
+        return Response.render_response('Argumentos insuficientes', 'E')
+    if args[0].lower() == 'card':
+        holder: str = args[1]
+        success: bool = Cards.create_card(session.user, holder)
+
+        if success:
+            return Response.render_response('OK', 'S')
+
+        return Response.render_response('Cartão já existe', 'E')
+
+    return Response.render_response('Erro no Create', 'E')
+
+
+@bank.command('CARDS', help='Lista de cartoes')
+@require_auth
+def list_cards(session: Session, args) -> bytes:
+    cards = Cards.list_user_cards(session.user)
+    if not cards:
+        return Response.render_response('O usuário não possui nenhum cartão', 'S')
+
+    return Response.render_response(cards, 'S')
+
+
+@bank.command('TRANSFERS', help='Historico de transferencias')
+@require_auth
+def transfers(session: Session, _) -> bytes:
+    transfers: list[dict[str, str]] = Transfers.list_user_transfs(session.user.id)
+    
+    for t in transfers:
+        if t['source'] == session.user.id:
+            t['flow'] = 'out'
+            t['source'] = session.user.username
+            t['destiny'] = User.load_user(t['destiny']).username
+
+        if t['destiny'] == session.user.id:
+            t['flow'] = 'in'
+            t['destiny'] = session.user.username
+            t['source'] = User.load_user(t['source']).username
+
+        t['value'] = int(t['value']) / 100
+
+    return Response.render_response(transfers, 'S')
+
+
 @bank.command('INFO', help='Exibe as informações da sua conta')
 @require_auth
 def info(session: Session, _) -> bytes:
@@ -40,7 +88,19 @@ def info(session: Session, _) -> bytes:
     return Response.render_response(infos, 'S')    
 
 
-@bank.command('UPDATE', help='Atualiza a sua chave de transferência ($> UPDATE newkey)')
+@bank.command('DELETE', help='DELETE a user item (card)')
+def delete(session: Session, args: list[str]) -> bytes:
+    if len(args) < 2:
+        return Response.render_response('DELETE command takes 2 argumments (item, item_id)')
+
+    if args[0].lower() == 'card':
+        Cards.delete_card(args[1])
+        return Response.render_response('Card deleted successfully', 'S')
+
+    return Response.render_response('Invalid DELETE option')
+
+
+@bank.command('UPDATE', help='Updates a user item ($> UPDATE newkey)')
 @require_auth
 def update_key(session: Session, args: list[str]) -> bytes:
     if len(args) == 1:
@@ -48,7 +108,7 @@ def update_key(session: Session, args: list[str]) -> bytes:
 
         success: bool = session.user.update_key(key)
         if not success:
-            return Response.render_response('A chave não pode ser atualizada.', 'E')
+            return Response.render_response('Key could not be updated.', 'E')
         
         return Response.render_response(session.user.key, 'S')
     elif len(args) > 1:
@@ -57,7 +117,7 @@ def update_key(session: Session, args: list[str]) -> bytes:
     return Response.render_response('UPDATE command takes at least 1 argumment', 'E')
 
 
-@bank.command('TRANSFER', help='Transfere valor x para a conta y (Ex: TRANSFER conta_y valor_x)')
+@bank.command('TRANSFER', help='TRANSFER an x value to a y card (Ex: TRANSFER conta_y valor_x)')
 @require_auth
 def transfer(session: Session, args: list) -> bytes:
     if len(args) == 2:
@@ -76,25 +136,17 @@ def transfer(session: Session, args: list) -> bytes:
     return Response.render_response('Invalid argumments number', 'E')
 
 
-@bank.command('LIST_T', help='Lista todas as transferências realizadas')
+@bank.command('LIST', help='Lista todas as transferências realizadas')
 @require_auth
-def list_transfers(session: Session, _) -> bytes:
-    transfers: list[dict[str, str]] = Transfers.list_user_transfs(session.user.id)
+def list_transfers(session: Session, args) -> bytes:
 
-    for t in transfers:
-        if t['source'] == session.user.id:
-            t['flow'] = 'out'
-            t['source'] = session.user.username
-            t['destiny'] = User.load_user(t['destiny']).username
+    if args[0].lower() == 'cards':
+        return list_cards(session, args)
 
-        if t['destiny'] == session.user.id:
-            t['flow'] = 'in'
-            t['destiny'] = session.user.username
-            t['source'] = User.load_user(t['source']).username
+    elif args[0].lower() == 'transfers':
+        return transfers(session, args)
 
-        t['value'] = int(t['value']) / 100
-
-    return Response.render_response(transfers, 'S')
+    return Response.render_response('Você precisa especificar o que quer listar, ex: (LIST cards || LIST transfers)', 'E')
 
 
 @bank.command('LOGIN', help='Recebe o username como argumento e inicia o processo de login')

@@ -13,6 +13,18 @@ CREATE TABLE IF NOT EXISTS transfers(
     value INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS cards (
+    id INTEGER PRIMARY KEY,
+    holder TEXT NOT NULL,
+    number TEXT NOT NULL UNIQUE,
+    cvv TEXT NOT NULL UNIQUE,
+    brand TEXT NOT NULL,
+    exp TEXT NOT NULL,
+    blocked INTEGER NOT NULL,
+    balance INTEGER NOT NULL ,
+    owner INTEGER NOT NULL REFERENCES users(id)
+);
+
 INSERT OR IGNORE INTO users(username, password, currency, key) 
 VALUES
 ('guest', 'bfbdb10e7244d30e9225a2bc22658556a50ffc79f032704bcbb96d89469a14b8', 1000, 'guest'), 

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from src.utils import gerar_cartao
+
+import random
 import sqlite3
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -137,4 +140,68 @@ class Transfers:
         transfs = [dict(row) for row in query]
 
         return transfs
+
+
+@dataclass
+class Cards:
+    id: int
+    holder: str
+    number: str
+    cvv: str
+    brand: str
+    exp: str
+    blocked: bool
+    balance: int
+    owner_id: int
+
+    @classmethod
+    def get_card(cls, card_id: int) -> Cards | None:
+        with db() as (_, cur):
+            card = cur.execute('SELECT * FROM cards WHERE id=?;', (card_id,)).fetchone()
+
+            if not card:
+                return None
+        return cls(
+            id=card['id'],
+            holder=card['holder'],
+            number=card['number'],
+            cvv=card['cvv'],
+            brand=card['brand'],
+            exp=card['exp'],
+            blocked=card['blocked'],
+            balance=card['balance'],
+            owner_id=card['owner']
+        )
+
+    @staticmethod
+    def list_user_cards(user: User) -> list[dict] | None:
+        with db() as (_, cur):
+            cards = cur.execute('SELECT * FROM cards WHERE owner=?;', (user.id,)).fetchall()
+            if not cards:
+                return None
+
+        return [dict(card) for card in cards]
+
+
+    @staticmethod
+    def create_card(user: User, name: str) -> bool:
+        card_num: str = gerar_cartao("5", 16)
+        with db() as (conn, cur):
+            cur.execute(
+                'INSERT OR IGNORE INTO cards(holder, number, cvv, brand, exp, blocked, balance, owner) VALUES(?, ?, ?, ?, ?, ?, ?, ?)', 
+                (name, card_num, "".join([str(random.randint(0, 9)) for _ in range(3)]), 'CryptaB', '04/30', 0, 0, user.id)
+            )
+
+            try:
+                conn.commit()
+            except sqlite3.IntegrityError:
+                return False
+        return True
+
+    @staticmethod
+    def delete_card(card_id: str) -> None:
+        with db() as (conn, cur):
+            cur.execute('DELETE FROM cards WHERE id=?;', (card_id,))
+            conn.commit()
+       
 

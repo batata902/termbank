@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptaBank — Acessar Conta</title>
+<style>
+:root {
+  --solar-gold: #fac203;
+  --solar-gold-hover: #e0ac02;
+  --obsidian: #000000;
+  --ivory-sand: #fff4ec;
+  --white: #ffffff;
+  --gray-900: #1a1a1a;
+  --gray-800: #242424;
+  --gray-700: #333333;
+  --gray-400: #8a8a8a;
+  --input-bg: #121212;
+
+  --font-body: Inter, Roboto, Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+
+  --radius: 8px;
+  --radius-sm: 4px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--obsidian);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-3);
+}
+
+/* Focus visibility for keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--solar-gold);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.login-container {
+  width: 100%;
+  max-width: 420px;
+  background: var(--gray-900);
+  border: 1px solid var(--gray-700);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: var(--space-4);
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  color: var(--white);
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: var(--space-2);
+}
+
+.logo span {
+  color: var(--solar-gold);
+}
+
+.login-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--white);
+}
+
+.login-header p {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ivory-sand);
+}
+
+/* Form Styles */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-group label {
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.auth-input {
+  width: 100%;
+  min-height: 44px;
+  background: var(--input-bg);
+  border: 1px solid var(--gray-700);
+  border-radius: var(--radius);
+  color: var(--white);
+  font-family: inherit;
+  font-size: 16px;
+  padding: 0 var(--space-2);
+  transition: border-color .15s ease;
+}
+
+.auth-input:focus-visible {
+  border-color: var(--solar-gold);
+}
+
+.auth-input::placeholder {
+  color: var(--gray-400);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+  text-align: center;
+  width: 100%;
+  margin-top: var(--space-1);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--solar-gold);
+  color: var(--obsidian);
+}
+
+.btn-primary:hover {
+  background: var(--solar-gold-hover);
+}
+
+/* Tabs / Switcher */
+.auth-switch {
+  margin-top: var(--space-4);
+  text-align: center;
+  font-size: 14px;
+  color: var(--gray-400);
+}
+
+.auth-switch a {
+  color: var(--solar-gold);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .15s ease;
+}
+
+.auth-switch a:hover,
+.auth-switch a:focus-visible {
+  border-color: var(--solar-gold);
+}
+
+/* Hidden state for simple tab switching demo */
+.form-section {
+  display: none;
+}
+.form-section.active {
+  display: block;
+}
+</style>
+</head>
+<body>
+
+<main class="login-container">
+  <div class="login-header">
+    <a href="#" class="logo">Crypta<span>Bank</span></a>
+    <h1 id="form-title">Acesse sua conta</h1>
+    <p id="form-subtitle">Controle total da sua vida financeira na palma da mão.</p>
+  </div>
+
+  <!-- Formulário de Login -->
+  <form class="auth-form form-section active" id="login-form" aria-label="Formulário de Login">
+    <div class="field-group">
+      <label for="login-user">Username</label>
+      <input type="text" id="login-user" name="username" class="auth-input" placeholder="Digite seu usuário" autocomplete="username" required>
+    </div>
+    
+    <div class="field-group">
+      <label for="login-pass">Senha</label>
+      <input type="password" id="login-pass" name="password" class="auth-input" placeholder="••••••••" autocomplete="current-password" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Entrar</button>
+
+    <div class="auth-switch">
+      Ainda não tem uma conta? <a href="#" onclick="toggleAuthMode(event, 'register')">Cadastre-se</a>
+    </div>
+  </form>
+
+  <!-- Formulário de Cadastro -->
+  <form class="auth-form form-section" id="register-form" aria-label="Formulário de Cadastro">
+    <div class="field-group">
+      <label for="register-user">Username</label>
+      <input type="text" id="register-user" name="username" class="auth-input" placeholder="Escolha um usuário" autocomplete="username" required>
+    </div>
+    
+    <div class="field-group">
+      <label for="register-pass">Senha</label>
+      <input type="password" id="register-pass" name="password" class="auth-input" placeholder="Crie uma senha forte" autocomplete="new-password" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Criar Conta</button>
+
+    <div class="auth-switch">
+      Já tem uma conta? <a href="#" onclick="toggleAuthMode(event, 'login')">Fazer login</a>
+    </div>
+  </form>
+</main>
+
+<script>
+  function toggleAuthMode(e, mode) {
+    e.preventDefault();
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const title = document.getElementById('form-title');
+    const subtitle = document.getElementById('form-subtitle');
+
+    if (mode === 'register') {
+      loginForm.classList.remove('active');
+      registerForm.classList.add('active');
+      title.textContent = 'Abra sua conta';
+      subtitle.textContent = 'Rápido, seguro e 100% digital.';
+    } else {
+      registerForm.classList.remove('active');
+      loginForm.classList.add('active');
+      title.textContent = 'Acesse sua conta';
+      subtitle.textContent = 'Controle total da sua vida financeira na palma da mão.';
+    }
+  }
+
+  // Previne envio real para fins de demonstração visual
+  document.querySelectorAll('.auth-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const btn = form.querySelector('button');
+      const originalText = btn.textContent;
+      btn.textContent = 'Processando...';
+      setTimeout(() => {
+        btn.textContent = 'Sucesso!';
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 1500);
+      }, 1000);
+    });
+  });
+</script>
+
+</body>
+</html>

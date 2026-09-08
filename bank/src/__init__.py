@@ -1,4 +1,4 @@
-from src.models import User, Transfers
+from src.models import User, Transfers, Cards
 from src.core import Bank
 import sqlite3
 
