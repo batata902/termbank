@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptaBank — Controle total da sua vida financeira</title>
+<meta name="description" content="Peça seu Cartão de Crédito e sua Conta do CryptaBank. Transparente, seguro e 100% digital.">
+<style>
+  :root{
+    --solar-gold:#fac203;
+    --obsidian:#000000;
+    --ivory-sand:#fff4ec;
+    --horizon-blue:#e8f1ff;
+    --white:#ffffff;
+    --gray-900:#1a1a1a;
+    --gray-800:#242424;
+    --gray-700:#333333;
+    --gray-600:#4d4d4d;
+    --gray-400:#8a8a8a;
+    --input-bg:#121212;
+
+    --font-body: Inter, Roboto, Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+    --space-5: 40px;
+    --space-6: 48px;
+    --space-8: 64px;
+    --space-10: 80px;
+    --space-12: 96px;
+
+    --radius: 8px;
+    --radius-sm: 4px;
+
+    --max-width: 1200px;
+  }
+
+  *, *::before, *::after{ box-sizing: border-box; }
+
+  html{
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior: auto; }
+    *, *::before, *::after{
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  body{
+    margin:0;
+    background: var(--obsidian);
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img{ max-width:100%; display:block; }
+
+  a{ color: inherit; text-decoration: none; }
+
+  .container{
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 var(--space-3);
+  }
+
+  /* Focus visibility for keyboard navigation */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible{
+    outline: 2px solid var(--solar-gold);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
+
+  .skip-link{
+    position:absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--solar-gold);
+    color: var(--obsidian);
+    padding: var(--space-2) var(--space-3);
+    z-index: 1000;
+    font-weight: 700;
+    border-radius: 0 0 var(--radius-sm) 0;
+  }
+  .skip-link:focus{
+    left: 0;
+  }
+
+  /* ---------- Header ---------- */
+  .site-header{
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: saturate(140%) blur(6px);
+    border-bottom: 1px solid var(--gray-700);
+  }
+  .site-header .container{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+    gap: var(--space-3);
+  }
+  .logo{
+    font-weight:700;
+    font-size:20px;
+    letter-spacing:-0.01em;
+    color: var(--white);
+  }
+  .logo span{ color: var(--solar-gold); }
+
+  .main-nav{
+    display:none;
+  }
+  .main-nav ul{
+    list-style:none;
+    display:flex;
+    gap: var(--space-4);
+    margin:0;
+    padding:0;
+  }
+  .main-nav a{
+    font-size:14px;
+    color: var(--white);
+    padding: var(--space-1) 0;
+    border-bottom: 2px solid transparent;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .main-nav a:hover,
+  .main-nav a:focus-visible{
+    color: var(--solar-gold);
+    border-color: var(--solar-gold);
+  }
+
+  .header-cta{
+    display:none;
+  }
+
+  @media (min-width: 900px){
+    .main-nav{ display:block; }
+    .header-cta{ display:inline-flex; }
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-4);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+    text-align:center;
+  }
+  .btn:active{ transform: translateY(1px); }
+
+  .btn-primary{
+    background: var(--solar-gold);
+    color: var(--obsidian);
+  }
+  .btn-primary:hover{
+    background:#e0ac02;
+  }
+
+  .btn-secondary{
+    background: transparent;
+    color: var(--white);
+    border-color: var(--white);
+  }
+  .btn-secondary:hover{
+    border-color: var(--solar-gold);
+    color: var(--solar-gold);
+  }
+
+  .btn-block{
+    width:100%;
+  }
+
+  /* ---------- Form ---------- */
+  .cpf-form{
+    display:flex;
+    flex-direction:column;
+    gap: var(--space-2);
+    max-width: 420px;
+  }
+  @media (min-width: 560px){
+    .cpf-form{
+      flex-direction:row;
+    }
+  }
+  .field-group{
+    flex:1;
+  }
+  .field-group label{
+    display:block;
+    font-size:12px;
+    color: var(--gray-400);
+    margin-bottom: 6px;
+  }
+  .cpf-input{
+    width:100%;
+    min-height:44px;
+    background: var(--input-bg);
+    border: 1px solid var(--gray-700);
+    border-radius: var(--radius);
+    color: var(--white);
+    font-family: inherit;
+    font-size:16px;
+    padding: 0 var(--space-2);
+  }
+  .cpf-input:focus-visible{
+    border-color: var(--solar-gold);
+  }
+  .cpf-input::placeholder{
+    color: var(--gray-400);
+  }
+
+  /* ---------- Typography scale ---------- */
+  h1, h2, h3{
+    margin:0;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  h1{
+    font-size: 32px;
+    line-height:1.15;
+    font-weight:700;
+  }
+  h2{
+    font-size: 28px;
+    line-height:1.2;
+    font-weight:600;
+  }
+  h3{
+    font-size: 20px;
+    line-height:1.3;
+    font-weight:500;
+  }
+  p{
+    margin:0;
+  }
+  .eyebrow-free{ /* placeholder utility retained intentionally empty: no tracked-out eyebrow labels used */ }
+
+  @media (min-width: 768px){
+    h1{ font-size: 44px; }
+    h2{ font-size: 34px; }
+    h3{ font-size: 22px; }
+  }
+  @media (min-width: 1100px){
+    h1{ font-size: 56px; }
+    h2{ font-size: 40px; }
+  }
+
+  .microcopy{
+    font-size:13px;
+    color: var(--gray-400);
+  }
+
+  /* ---------- Sections ---------- */
+  section{
+    padding: var(--space-8) 0;
+  }
+  @media (min-width: 900px){
+    section{ padding: var(--space-10) 0; }
+  }
+
+  .section-heading{
+    max-width: 640px;
+    margin: 0 0 var(--space-6);
+  }
+  .section-heading.center{
+    margin-left:auto;
+    margin-right:auto;
+    text-align:center;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    padding-top: var(--space-10);
+    padding-bottom: var(--space-10);
+    overflow:hidden;
+    background: var(--obsidian);
+  }
+  .hero-video{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:0;
+  }
+  .hero::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      radial-gradient(60% 50% at 80% 0%, rgba(250,194,3,0.18), transparent 65%),
+      linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.72) 45%, rgba(0,0,0,0.4) 100%);
+    pointer-events:none;
+    z-index:1;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .hero-video{ display:none; }
+  }
+  .hero .container{
+    position:relative;
+    z-index:2;
+    display:grid;
+    gap: var(--space-6);
+    align-items:center;
+  }
+  @media (min-width: 960px){
+    .hero .container{
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+  }
+  .hero-content h1{
+    color: var(--white);
+  }
+  .hero-content h1 em{
+    font-style:normal;
+    color: var(--solar-gold);
+  }
+  .hero-subtitle{
+    margin-top: var(--space-3);
+    font-size:18px;
+    color: var(--ivory-sand);
+    max-width: 46ch;
+  }
+  .hero-form{
+    margin-top: var(--space-5);
+  }
+  .hero-visual{
+    justify-self:center;
+    width:100%;
+    max-width: 420px;
+    aspect-ratio: 4/5;
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-700);
+    background:
+      linear-gradient(155deg, var(--gray-900) 0%, #000 70%);
+    display:flex;
+    align-items:flex-end;
+    padding: var(--space-4);
+    position:relative;
+  }
+  .card-mock{
+    width:100%;
+    aspect-ratio: 1.586/1;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--solar-gold), #b98a02);
+    color: var(--obsidian);
+    padding: var(--space-3);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
+  }
+  .card-mock .brand{
+    font-weight:700;
+    font-size:16px;
+  }
+  .card-mock .chip{
+    width:36px;
+    height:26px;
+    background: rgba(0,0,0,0.7);
+    border-radius: 4px;
+  }
+  .card-mock .number{
+    font-size:15px;
+    letter-spacing:0.12em;
+  }
+
+  /* ---------- Product segmentation ---------- */
+  .products-grid{
+    display:grid;
+    gap: var(--space-3);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 700px){
+    .products-grid{ grid-template-columns: 1fr 1fr; }
+  }
+  @media (min-width: 1100px){
+    .products-grid{ grid-template-columns: repeat(4, 1fr); }
+  }
+  .product-card{
+    background: var(--gray-900);
+    border: 1px solid var(--gray-700);
+    border-radius: var(--radius);
+    padding: var(--space-4);
+    display:flex;
+    flex-direction:column;
+    gap: var(--space-2);
+  }
+  .product-card.is-plus{ border-color: #7a6205; }
+  .product-card.is-black{
+    background: #0c0c0c;
+    border-color: var(--solar-gold);
+  }
+  .product-card h3{ color: var(--white); }
+  .product-card p{ color: var(--ivory-sand); flex:1; font-size:15px; }
+  .product-card .card-link{
+    color: var(--solar-gold);
+    font-weight:600;
+    font-size:15px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding: var(--space-1) 0;
+    border-bottom: 1px solid transparent;
+    transition: border-color .15s ease;
+  }
+  .product-card .card-link:hover,
+  .product-card .card-link:focus-visible{
+    border-color: var(--solar-gold);
+  }
+
+  /* ---------- Features ---------- */
+  .features-grid{
+    display:grid;
+    gap: var(--space-3);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 700px){
+    .features-grid{ grid-template-columns: 1fr 1fr; }
+  }
+  .feature-card{
+    background: var(--ivory-sand);
+    color: var(--obsidian);
+    border-radius: var(--radius);
+    padding: var(--space-4);
+    display:flex;
+    flex-direction:column;
+    gap: var(--space-2);
+  }
+  .feature-card h3{ color: var(--obsidian); }
+  .feature-card p{ font-size:15px; color: var(--gray-700); }
+  .feature-card .card-link{
+    color: #7a5b00;
+    font-weight:700;
+    font-size:15px;
+    align-self:flex-start;
+    border-bottom: 1px solid transparent;
+    transition: border-color .15s ease;
+  }
+  .feature-card .card-link:hover,
+  .feature-card .card-link:focus-visible{
+    border-color: #7a5b00;
+  }
+
+  /* ---------- Blog ---------- */
+  .blog-header{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+  .blog-grid{
+    display:grid;
+    gap: var(--space-3);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 700px){
+    .blog-grid{ grid-template-columns: repeat(3, 1fr); }
+  }
+  .blog-card{
+    background: var(--gray-900);
+    border: 1px solid var(--gray-700);
+    border-radius: var(--radius);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .blog-card img{
+    width:100%;
+    aspect-ratio: 16/9;
+    object-fit:cover;
+    background: var(--gray-800);
+  }
+  .blog-card-body{
+    padding: var(--space-3);
+    display:flex;
+    flex-direction:column;
+    gap: var(--space-2);
+    flex:1;
+  }
+  .blog-card h3{ font-size:18px; color:var(--white); flex:1; }
+  .blog-card .card-link{
+    color: var(--solar-gold);
+    font-weight:600;
+    font-size:14px;
+  }
+  .blog-card .card-link:hover,
+  .blog-card .card-link:focus-visible{
+    text-decoration:underline;
+  }
+
+  /* ---------- Security ---------- */
+  .security{
+    background: var(--gray-900);
+    border-top: 1px solid var(--gray-700);
+    border-bottom: 1px solid var(--gray-700);
+  }
+  .security-text{
+    max-width: 640px;
+    margin-bottom: var(--space-5);
+  }
+  .security-text p{
+    margin-top: var(--space-2);
+    color: var(--ivory-sand);
+    font-size:16px;
+  }
+  .security-actions{
+    display:grid;
+    gap: var(--space-2);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 700px){
+    .security-actions{ grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1100px){
+    .security-actions{ grid-template-columns: repeat(4, 1fr); }
+  }
+  .security-btn{
+    background: var(--input-bg);
+    border: 1px solid var(--gray-700);
+    color: var(--white);
+    border-radius: var(--radius);
+    padding: var(--space-3);
+    min-height:44px;
+    font-weight:600;
+    font-size:15px;
+    text-align:left;
+    display:flex;
+    align-items:center;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .security-btn:hover,
+  .security-btn:focus-visible{
+    border-color: var(--solar-gold);
+    color: var(--solar-gold);
+  }
+
+  /* ---------- Social proof ---------- */
+  .social-proof{
+    text-align:center;
+  }
+  .social-proof .section-heading{
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .social-proof-visual{
+    margin: var(--space-6) auto 0;
+    max-width: 900px;
+    display:grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: var(--space-2);
+  }
+  .social-proof-visual img{
+    width:100%;
+    aspect-ratio: 1/1;
+    object-fit:cover;
+    border-radius: var(--radius);
+    background: var(--gray-800);
+  }
+  .social-proof-visual img:nth-child(2){
+    aspect-ratio: 1/1;
+    border: 2px solid var(--solar-gold);
+  }
+
+  /* ---------- Pre-footer CTA ---------- */
+  .final-cta{
+    background: linear-gradient(180deg, var(--gray-900), var(--obsidian));
+    text-align:center;
+  }
+  .final-cta .container{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: var(--space-4);
+  }
+  .final-cta h2{ max-width: 20ch; }
+  .final-cta .cpf-form{
+    margin: 0 auto;
+    justify-content:center;
+  }
+
+  /* ---------- Footer ---------- */
+  .site-footer{
+    background: var(--obsidian);
+    border-top:1px solid var(--gray-700);
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-4);
+    font-size:14px;
+    color: var(--gray-400);
+  }
+  .footer-columns{
+    display:grid;
+    gap: var(--space-4);
+    grid-template-columns: 1fr;
+    margin-bottom: var(--space-6);
+  }
+  @media (min-width: 700px){
+    .footer-columns{ grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1000px){
+    .footer-columns{ grid-template-columns: repeat(4, 1fr); }
+  }
+  .footer-col h3{
+    color: var(--white);
+    font-size:16px;
+    margin-bottom: var(--space-2);
+  }
+  .footer-col ul{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap: var(--space-1);
+  }
+  .footer-col a:hover,
+  .footer-col a:focus-visible{
+    color: var(--solar-gold);
+  }
+
+  .footer-contact{
+    border-top: 1px solid var(--gray-700);
+    padding-top: var(--space-4);
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  .footer-contact-item strong{
+    display:block;
+    color: var(--white);
+    font-size:14px;
+    margin-bottom:4px;
+  }
+  .social-icons{
+    display:flex;
+    gap: var(--space-2);
+  }
+  .social-icons a{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    border:1px solid var(--gray-700);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .social-icons a:hover,
+  .social-icons a:focus-visible{
+    border-color: var(--solar-gold);
+    color: var(--solar-gold);
+  }
+  .social-icons svg{ width:18px; height:18px; fill:currentColor; }
+
+  .footer-legal{
+    border-top: 1px solid var(--gray-700);
+    padding-top: var(--space-3);
+    font-size:12px;
+    color: var(--gray-600);
+  }
+
+  .visually-hidden{
+    position:absolute;
+    width:1px;height:1px;
+    padding:0;margin:-1px;
+    overflow:hidden;
+    clip:rect(0,0,0,0);
+    white-space:nowrap;
+    border:0;
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Pular para o conteúdo principal</a>
+
+<header class="site-header">
+  <div class="container">
+    <a href="#hero" class="logo" aria-label="CryptaBank, página inicial">Crypta<span>Bank</span></a>
+    <nav class="main-nav" aria-label="Navegação principal">
+      <ul>
+        <li><a href="#produtos">Produtos</a></li>
+        <li><a href="#solucoes">Soluções</a></li>
+        <li><a href="#novidades">Novidades</a></li>
+        <li><a href="#seguranca">Segurança</a></li>
+      </ul>
+    </nav>
+    <a href="#hero-form" class="btn btn-primary header-cta">Continuar</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+  <!-- Seção 1: Hero -->
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <video class="hero-video" autoplay muted loop playsinline preload="auto" aria-hidden="true" poster="">
+      <source src="../static/midia/hero-bg.mp4" type="video/mp4">
+    </video>
+    <div class="container">
+      <div class="hero-content">
+        <h1 id="hero-title">Somos incansáveis para que você tenha o controle do seu dinheiro.</h1>
+        <p class="hero-subtitle">Peça seu Cartão de Crédito e sua Conta do CryptaBank. Transparente, seguro e 100% digital.</p>
+        <form class="cpf-form hero-form" id="hero-form" aria-label="Formulário para solicitar o CryptaBank">
+          <div class="field-group">
+            <label for="cpf-hero">CPF</label>
+            <input type="text" id="cpf-hero" name="cpf" class="cpf-input" placeholder="Digite seu CPF" inputmode="numeric" autocomplete="off" aria-label="Digite seu CPF" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Continuar</button>
+        </form>
+      </div>
+      <div class="hero-visual" role="img" aria-label="Ilustração de um cartão de crédito dourado do CryptaBank flutuando sobre um fundo preto">
+        <div class="card-mock">
+          <div class="chip" aria-hidden="true"></div>
+          <div class="number" aria-hidden="true">•••• •••• •••• 0000</div>
+          <div class="brand">CryptaBank</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção 2: Segmentação de Produtos -->
+  <section id="produtos" aria-labelledby="produtos-title">
+    <div class="container">
+      <div class="section-heading">
+        <h2 id="produtos-title">Para cada momento da sua vida financeira, um CryptaBank diferente.</h2>
+      </div>
+      <div class="products-grid">
+        <article class="product-card">
+          <h3>Controle total da sua vida financeira.</h3>
+          <p>A conta digital e o cartão de crédito perfeitos para simplificar o seu dia a dia, sem tarifas escondidas e sem burocracia.</p>
+          <a class="card-link" href="#produtos">Conheça o CryptaBank</a>
+        </article>
+        <article class="product-card is-plus">
+          <h3>A experiência que valoriza sua evolução financeira.</h3>
+          <p>Benefícios exclusivos para fazer o seu dinheiro render mais e recompensar o seu progresso mês a mês.</p>
+          <a class="card-link" href="#produtos">Conheça o CryptaBank Plus</a>
+        </article>
+        <article class="product-card is-black">
+          <h3>O melhor cartão para quem ama ir mais longe.</h3>
+          <p>O segmento exclusivo com cashback que cresce, acesso a salas VIP e vantagens premium para as suas viagens e estilo de vida.</p>
+          <a class="card-link" href="#produtos">Conheça o CryptaBank Black</a>
+        </article>
+        <article class="product-card">
+          <h3>Tudo para gerir seu negócio com facilidade.</h3>
+          <p>Conta 100% digital, zero tarifas de manutenção e gestão descomplicada de pagamentos para a sua empresa decolar.</p>
+          <a class="card-link" href="#produtos">Conheça o CryptaBank Empresas</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção 3: Principais Soluções e Features -->
+  <section id="solucoes" aria-labelledby="solucoes-title">
+    <div class="container">
+      <div class="section-heading center">
+        <h2 id="solucoes-title">Diferentes soluções para o seu dia a dia.</h2>
+      </div>
+      <div class="features-grid">
+        <article class="feature-card">
+          <h3>O melhor cartão de crédito para o seu perfil.</h3>
+          <p>Sem anuidade, sem tarifas abusivas e o mais completo do mercado. Um limite que acompanha você e um app para controlar tudo na palma da mão.</p>
+          <a class="card-link" href="#solucoes">Conheça nossos cartões</a>
+        </article>
+        <article class="feature-card">
+          <h3>Ajudamos você a alcançar seus objetivos.</h3>
+          <p>Guarde dinheiro de maneira organizada de acordo com as suas metas. Seu dinheiro separado da conta principal e rendendo todos os dias.</p>
+          <a class="card-link" href="#solucoes">Conheça os Cofres CryptaBank</a>
+        </article>
+        <article class="feature-card">
+          <h3>Movimente seu dinheiro com liberdade.</h3>
+          <p>Pague, receba e transfira via Pix na hora, de qualquer lugar, com máxima segurança e rendimento automático.</p>
+          <a class="card-link" href="#solucoes">Conheça a Conta</a>
+        </article>
+        <article class="feature-card">
+          <h3>Crédito simples e transparente.</h3>
+          <p>Consiga ajuda financeira com taxas claras para resolver uma emergência, organizar as contas ou realizar um sonho.</p>
+          <a class="card-link" href="#solucoes">Conheça as opções de crédito</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção 4: Blog / Novidades -->
+  <section id="novidades" aria-labelledby="novidades-title">
+    <div class="container">
+      <div class="blog-header">
+        <h2 id="novidades-title">Fique por dentro das novidades.</h2>
+        <a href="#novidades" class="btn btn-secondary">Ir para o Blog CryptaBank</a>
+      </div>
+      <div class="blog-grid">
+        <article class="blog-card">
+          <img src="https://images.unsplash.com/photo-1614064548237-096d64ec86d5?w=600&h=340&fit=crop" alt="Cadeado digital simbolizando a proteção de dados e do dinheiro dos clientes" loading="lazy" width="600" height="340">
+          <div class="blog-card-body">
+            <h3>Proteção em várias camadas: como o CryptaBank cuida do seu dinheiro e dos seus dados.</h3>
+            <a class="card-link" href="#novidades">Leia aqui</a>
+          </div>
+        </article>
+        <article class="blog-card">
+          <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&h=340&fit=crop" alt="Pessoa organizando finanças pessoais em um aplicativo no celular" loading="lazy" width="600" height="340">
+          <div class="blog-card-body">
+            <h3>5 soluções do CryptaBank para dar um empurrãozinho na organização da sua vida financeira.</h3>
+            <a class="card-link" href="#novidades">Leia aqui</a>
+          </div>
+        </article>
+        <article class="blog-card">
+          <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=340&fit=crop" alt="Cartão de crédito virtual exibido na tela de um smartphone" loading="lazy" width="600" height="340">
+          <div class="blog-card-body">
+            <h3>A revolução do crédito: conheça as novas vantagens do seu cartão virtual.</h3>
+            <a class="card-link" href="#novidades">Leia aqui</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção 5: Segurança -->
+  <section id="seguranca" class="security" aria-labelledby="seguranca-title">
+    <div class="container">
+      <div class="security-text">
+        <h2 id="seguranca-title">Segurança é nossa prioridade absoluta.</h2>
+        <p>Estamos aqui para te dar suporte completo e garantir a proteção do seu patrimônio e dos seus dados em todas as etapas.</p>
+      </div>
+      <nav class="security-actions" aria-label="Acesso rápido a canais de segurança">
+        <a class="security-btn" href="#seguranca">Central de Proteção</a>
+        <a class="security-btn" href="#seguranca">Fui Roubado / Perdi o celular</a>
+        <a class="security-btn" href="#seguranca">Canal de Denúncias</a>
+        <a class="security-btn" href="#seguranca">Prevenção a Fraudes</a>
+      </nav>
+    </div>
+  </section>
+
+  <!-- Seção 6: Prova Social -->
+  <section class="social-proof" aria-labelledby="prova-social-title">
+    <div class="container">
+      <div class="section-heading center">
+        <h2 id="prova-social-title">Junte-se a milhares de pessoas que já escolheram inovar com o CryptaBank.</h2>
+        <p style="margin-top: var(--space-2); color: var(--ivory-sand);">Uma revolução financeira projetada para facilitar a sua vida. Venha fazer parte.</p>
+      </div>
+      <div class="social-proof-visual">
+        <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=400&fit=crop" alt="Cliente sorrindo enquanto usa o cartão CryptaBank em uma compra" loading="lazy" width="400" height="400">
+        <img src="https://images.unsplash.com/photo-1556742044-3c52d6e88c62?w=400&h=400&fit=crop" alt="Cliente conferindo o saldo da conta pelo aplicativo do CryptaBank" loading="lazy" width="400" height="400">
+        <img src="https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&h=400&fit=crop" alt="Grupo de clientes satisfeitos usando o CryptaBank no dia a dia" loading="lazy" width="400" height="400">
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção 7: Pré-Rodapé (CTA Final) -->
+  <section class="final-cta" aria-labelledby="final-cta-title">
+    <div class="container">
+      <h2 id="final-cta-title">Peça seu Cartão de Crédito e sua Conta do CryptaBank agora.</h2>
+      <form class="cpf-form" aria-label="Formulário final para solicitar o CryptaBank">
+        <div class="field-group">
+          <label for="cpf-final" class="visually-hidden">CPF</label>
+          <input type="text" id="cpf-final" name="cpf" class="cpf-input" placeholder="Digite seu CPF" inputmode="numeric" autocomplete="off" aria-label="Digite seu CPF" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Quero ser CryptaBank</button>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<!-- Seção 8: Rodapé -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-columns">
+      <div class="footer-col">
+        <h3>O CryptaBank</h3>
+        <ul>
+          <li><a href="#hero">Sobre nós</a></li>
+          <li><a href="#hero">Carreiras</a></li>
+          <li><a href="#hero">Trabalhe com a gente</a></li>
+          <li><a href="#hero">Imprensa</a></li>
+          <li><a href="#hero">ESG</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Nossos Produtos</h3>
+        <ul>
+          <li><a href="#produtos">Conta Digital</a></li>
+          <li><a href="#produtos">Cartão de Crédito</a></li>
+          <li><a href="#solucoes">Empréstimos</a></li>
+          <li><a href="#produtos">Conta Empresas</a></li>
+          <li><a href="#hero">Investimentos</a></li>
+          <li><a href="#hero">Seguros</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Transparência</h3>
+        <ul>
+          <li><a href="#hero">Política de Privacidade</a></li>
+          <li><a href="#hero">Termos de Uso</a></li>
+          <li><a href="#hero">Contratos</a></li>
+          <li><a href="#hero">Relatórios Financeiros</a></li>
+          <li><a href="#seguranca">Segurança</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Ajuda</h3>
+        <ul>
+          <li><a href="#hero">Perguntas Frequentes</a></li>
+          <li><a href="#hero">Ouvidoria</a></li>
+          <li><a href="#hero">Fale com a gente</a></li>
+          <li><a href="#hero">Central de Atendimento</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-contact">
+      <div class="footer-contact-item">
+        <strong>Atendimento (24h por dia)</strong>
+        <a href="tel:08000000000">0800 000 0000</a>
+      </div>
+      <div class="footer-contact-item">
+        <strong>Ouvidoria (dias úteis das 9h às 18h)</strong>
+        <a href="tel:08001111111">0800 111 1111</a>
+      </div>
+      <div class="footer-contact-item">
+        <strong>Redes Sociais</strong>
+        <div class="social-icons">
+          <a href="#hero" aria-label="CryptaBank no Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c2.7 0 3.05.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.21.6 1.76 1.15.55.55.9 1.1 1.15 1.76.25.64.42 1.37.47 2.43.05 1.07.06 1.42.06 4.12s-.01 3.05-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.9 4.9 0 0 1-1.15 1.76 4.9 4.9 0 0 1-1.76 1.15c-.64.25-1.37.42-2.43.47-1.07.05-1.42.06-4.12.06s-3.05-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.9 4.9 0 0 1-1.76-1.15 4.9 4.9 0 0 1-1.15-1.76c-.25-.64-.42-1.37-.47-2.43C2.01 15.05 2 14.7 2 12s.01-3.05.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.21 1.15-1.76a4.9 4.9 0 0 1 1.76-1.15c.64-.25 1.37-.42 2.43-.47C8.95 2.01 9.3 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zm5.2-8.4a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0z"/></svg>
+          </a>
+          <a href="#hero" aria-label="CryptaBank no LinkedIn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.6v1.7h.05c.5-.9 1.7-1.9 3.5-1.9 3.8 0 4.5 2.4 4.5 5.6V21h-4v-5.7c0-1.4 0-3.1-1.9-3.1s-2.2 1.5-2.2 3v5.8H9z"/></svg>
+          </a>
+          <a href="#hero" aria-label="CryptaBank no TikTok">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h2.2c.2 1.7 1.3 3.1 3.1 3.6v2.2c-1.2-.1-2.3-.5-3.3-1.2v6.4a5.6 5.6 0 1 1-4.9-5.5v2.3a3.3 3.3 0 1 0 2.4 3.2V3z"/></svg>
+          </a>
+          <a href="#hero" aria-label="CryptaBank no Twitter">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 5.9c-.7.3-1.5.6-2.3.7a4 4 0 0 0 1.8-2.2c-.8.5-1.6.8-2.5 1a4 4 0 0 0-6.8 3.6A11.3 11.3 0 0 1 3.9 4.9a4 4 0 0 0 1.2 5.3c-.6 0-1.2-.2-1.7-.5v.1a4 4 0 0 0 3.2 3.9c-.6.1-1.2.2-1.8.1a4 4 0 0 0 3.7 2.7A8 8 0 0 1 2 18.4a11.3 11.3 0 0 0 6.1 1.8c7.3 0 11.3-6 11.3-11.3v-.5c.8-.6 1.4-1.3 2-2.1z"/></svg>
+          </a>
+          <a href="#hero" aria-label="CryptaBank no YouTube">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.6 7.2s-.2-1.5-.8-2.1c-.8-.8-1.7-.8-2.1-.9C15.9 4 12 4 12 4h0s-3.9 0-6.7.2c-.4 0-1.3.1-2.1.9-.6.6-.8 2.1-.8 2.1S2.2 9 2.2 10.7v1.6C2.2 14 2.4 15.8 2.4 15.8s.2 1.5.8 2.1c.8.8 1.8.8 2.3.9 1.7.2 6.5.2 6.5.2s3.9 0 6.7-.2c.4 0 1.3-.1 2.1-.9.6-.6.8-2.1.8-2.1s.2-1.8.2-3.5v-1.6c0-1.7-.2-3.5-.2-3.5zM9.9 14.6V8.9l5.4 2.9-5.4 2.8z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <p class="footer-legal">© 2026 CryptaBank S.A. - Instituição de Pagamento. CNPJ: 00.000.000/0001-00. Endereço Fictício, 100 - Centro - CEP: 00000-000.</p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    // Basic client-side handling for the two lead forms: prevent navigation,
+    // show inline confirmation without any external dependency.
+    var forms = document.querySelectorAll('.cpf-form');
+    forms.forEach(function(form){
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        var input = form.querySelector('.cpf-input');
+        var button = form.querySelector('button');
+        if(!input.value.trim()){
+          input.focus();
+          return;
+        }
+        var originalLabel = button.textContent;
+        button.textContent = 'Recebemos seu CPF!';
+        button.setAttribute('aria-live', 'polite');
+        setTimeout(function(){
+          button.textContent = originalLabel;
+        }, 2500);
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>
