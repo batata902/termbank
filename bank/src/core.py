@@ -57,7 +57,10 @@ class Bank:
         
         session: Session = Session()
         while True:
-            data: bytes = con.recv(1024)
+            try:
+                data: bytes = con.recv(1024)
+            except ConnectionResetError:
+                break
 
             if not data:
                 print(f'[ - ] Cliente desconectado -> {client[0]}')

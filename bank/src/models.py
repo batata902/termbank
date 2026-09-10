@@ -205,3 +205,22 @@ class Cards:
             conn.commit()
        
 
+    @staticmethod
+    def update_card(card_id: str, block: str) -> bool:
+        try:
+            block = int(block)
+            if block != 0 and block != 1:
+                return False
+            
+        except ValueError:
+            return False
+        
+        with db() as (conn, cur):
+            card = cur.execute('SELECT * FROM cards WHERE id=?;', (card_id,)).fetchone()
+            if not card:
+                return False
+
+            cur.execute('UPDATE cards SET blocked=? WHERE id=?', (block, card_id))
+            conn.commit()
+
+        return True

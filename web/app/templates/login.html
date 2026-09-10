@@ -218,6 +218,10 @@ input:focus-visible {
 </head>
 <body>
 
+{% if error %}
+<script>alert('{{ error }}')</script>
+{% endif %}
+
 <main class="login-container">
   <div class="login-header">
     <a href="#" class="logo">Crypta<span>Bank</span></a>
@@ -226,7 +230,7 @@ input:focus-visible {
   </div>
 
   <!-- Formulário de Login -->
-  <form class="auth-form form-section active" id="login-form" aria-label="Formulário de Login">
+  <form class="auth-form form-section active" id="login-form" aria-label="Formulário de Login" action="{{ url_for('login') }}" method="post">
     <div class="field-group">
       <label for="login-user">Username</label>
       <input type="text" id="login-user" name="username" class="auth-input" placeholder="Digite seu usuário" autocomplete="username" required>
@@ -288,16 +292,10 @@ input:focus-visible {
   // Previne envio real para fins de demonstração visual
   document.querySelectorAll('.auth-form').forEach(form => {
     form.addEventListener('submit', function(e) {
-      e.preventDefault();
       const btn = form.querySelector('button');
       const originalText = btn.textContent;
       btn.textContent = 'Processando...';
-      setTimeout(() => {
-        btn.textContent = 'Sucesso!';
-        setTimeout(() => {
-          btn.textContent = originalText;
-        }, 1500);
-      }, 1000);
+      
     });
   });
 </script>

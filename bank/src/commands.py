@@ -21,7 +21,7 @@ def help(*_) -> bytes:
 @bank.command('BALANCE', help='Exibe o saldo da sua conta')
 @require_auth
 def saldo(session: Session, _) -> bytes:
-    saldo_ = f'{(session.user.currency / 100):.2f}'.replace('.', ',')
+    saldo_ = session.user.currency / 100
 
     return  Response.render_response(saldo_, 'S')
 
@@ -53,7 +53,7 @@ def list_cards(session: Session, args) -> bytes:
     return Response.render_response(cards, 'S')
 
 
-@bank.command('TRANSFERS', help='Historico de transferencias')
+@bank.command('TRANSACTIONS', help='Historico de transferencias')
 @require_auth
 def transfers(session: Session, _) -> bytes:
     transfers: list[dict[str, str]] = Transfers.list_user_transfs(session.user.id)
@@ -103,18 +103,30 @@ def delete(session: Session, args: list[str]) -> bytes:
 @bank.command('UPDATE', help='Updates a user item ($> UPDATE newkey)')
 @require_auth
 def update_key(session: Session, args: list[str]) -> bytes:
-    if len(args) == 1:
-        key: str = args[0]
+    if len(args) >= 2:
+        item: str = args[0]
+        value: str = args[1]
 
-        success: bool = session.user.update_key(key)
-        if not success:
-            return Response.render_response('Key could not be updated.', 'E')
-        
-        return Response.render_response(session.user.key, 'S')
-    elif len(args) > 1:
-        return Response.render_response('UPDATE command takes only 1 argumment', 'E')
+        if item.lower() == 'key':
+            success: bool = session.user.update_key(value)
 
-    return Response.render_response('UPDATE command takes at least 1 argumment', 'E')
+            if not success:
+                return Response.render_response('Key could not be updated.', 'E')
+
+            return Response.render_response(session.user.key, 'S')
+
+        elif item.lower() == 'card':
+            if len(args) != 3:
+                return Response.render_response('UPDATE card takes 3 argumments -> UPDATE card card_id block_status (0/1)', 'E')
+            
+            block = args[2]
+            success: bool = Cards.update_card(value, block)
+            if not success:
+                return Response.render_response('Card UPDATE error', 'E')
+            
+            return Response.render_response('OK', 'S')
+
+    return Response.render_response('UPDATE command takes 2 argumments', 'E')
 
 
 @bank.command('TRANSFER', help='TRANSFER an x value to a y card (Ex: TRANSFER conta_y valor_x)')

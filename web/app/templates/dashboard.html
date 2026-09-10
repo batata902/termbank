@@ -716,12 +716,16 @@
       try {
         const response = await fetch(`${API_BASE_URL}/cards`);
         if (!response.ok) throw new Error("Falha ao buscar cartões");
+
         cards = await response.json();
+
         if (cards.length > 0 && !selectedCardId) {
           selectedCardId = cards[0].id;
         }
+
         renderCards();
         updateDashboardInfo();
+
       } catch (error) {
         document.getElementById("cardsGrid").innerHTML = `<p style="color: var(--gray-400);">Falta fazer api para essa funcionalidade</p>`;
       }
@@ -732,7 +736,7 @@
         const response = await fetch(`${API_BASE_URL}/balance`);
         if (!response.ok) throw new Error("Falha ao buscar saldo");
         const data = await response.json();
-        accountData.totalBalance = data.balance;
+        accountData.totalBalance = data.data;
         calculateTotalBalance();
       } catch (error) {
         document.getElementById("totalBalanceDisplay").innerText = "Falta fazer api para essa funcionalidade";
@@ -759,7 +763,7 @@
       const grid = document.getElementById("cardsGrid");
       grid.innerHTML = "";
 
-      cards.forEach(card => {
+      for (card of cards) {
         const isSelected = card.id === selectedCardId;
         const formattedNum = "**** " + (card.number ? card.number.slice(-4) : "0000");
         
@@ -787,7 +791,9 @@
           </div>
         `;
         grid.appendChild(cardEl);
-      });
+      }
+
+      
     }
 
     function selectCard(id) {
@@ -832,14 +838,15 @@
       transactions.forEach(tx => {
         const item = document.createElement("div");
         item.className = "transaction-item";
+        // <div class="tx-date">${tx.date}</div>
         item.innerHTML = `
           <div class="tx-details">
             <div>
-              <div class="tx-name">${tx.name}</div>
-              <div class="tx-date">${tx.date}</div>
+              <div class="tx-name">${tx.destiny}</div>
+              <div class="tx-date">05/08/2026</div>
             </div>
           </div>
-          <div class="tx-amount" style="color: ${tx.amount && tx.amount.includes('+') ? '#4cd964' : 'inherit'}">${tx.amount}</div>
+          <div class="tx-amount" style="color: ${tx.value && tx.flow.includes('in') ? '#4cd964' : 'red'}">${formatCurrency(tx.value)}</div>
         `;
         list.appendChild(item);
       });
@@ -867,12 +874,16 @@
           body: JSON.stringify({ destination, value })
         });
         
-        if (!response.ok) throw new Error("Erro na transferência");
+        if (response.ok) {
+          alert("Transferência realizada com sucesso!");
+        } else {
+          alert("Erro na transferencia!")
+        }
         
-        alert("Transferência realizada com sucesso!");
         closeModal('transferModal');
         document.getElementById('transferForm').reset();
         loadAllAppData();
+
       } catch (error) {
         alert("Falta fazer api para essa funcionalidade");
       }
