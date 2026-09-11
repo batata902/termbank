@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users(
 
 CREATE TABLE IF NOT EXISTS transfers(
     id INTEGER PRIMARY KEY,
+    date TEXT NOT NULL,
     source INTEGER NOT NULL REFERENCES users(id),
     destiny INTEGER NOT NULL REFERENCES users(id),
     value INTEGER NOT NULL

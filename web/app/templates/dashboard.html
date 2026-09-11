@@ -345,11 +345,29 @@
       margin-top: var(--space-1);
     }
 
-    /* Transactions List */
+    /* Transactions List & Scrollbar */
     .transaction-list {
       display: flex;
       flex-direction: column;
       gap: var(--space-2);
+      max-height: 250px; 
+      overflow-y: auto;  
+      padding-right: var(--space-1); 
+    }
+
+    .transaction-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .transaction-list::-webkit-scrollbar-track {
+      background: var(--gray-900);
+      border-radius: 4px;
+    }
+    .transaction-list::-webkit-scrollbar-thumb {
+      background: var(--gray-700);
+      border-radius: 4px;
+    }
+    .transaction-list::-webkit-scrollbar-thumb:hover {
+      background: var(--gray-600);
     }
 
     .transaction-item {
@@ -415,6 +433,8 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-3);
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     .modal-header {
@@ -506,8 +526,11 @@
         </div>
         
         <div class="search-actions">
+          <button class="btn-primary" onclick="openModal('depositModal')">
+            <span>+</span> Depositar
+          </button>
           <button class="btn-primary" onclick="openModal('transferModal')">
-            <span>+</span> Realizar Transferência
+            <span>+</span> Transferir
           </button>
           <button class="btn-primary" onclick="openModal('addModal')">
             <span>+</span> Cadastrar Cartão
@@ -561,7 +584,6 @@
           </div>
 
           <div class="manage-actions-row">
-            <button class="btn-secondary" style="flex: 1;" onclick="openEditModal()">Editar Cartão</button>
             <button class="btn-secondary" style="flex: 1; border-color: #ff4d4d; color: #ff4d4d;" onclick="deleteSelectedCard()">Excluir Cartão</button>
           </div>
         </div>
@@ -584,10 +606,37 @@
   </div>
 
   <!-- ==========================================================================
-       MODAIS 
+        MODAIS 
        ========================================================================== -->
 
-  <!-- MODAL TRANSFERÊNCIA -->
+  <!-- MODAL DEPÓSITO -->
+  <div class="modal-overlay" id="depositModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Depositar Dinheiro</h3>
+        <button class="close-btn" onclick="closeModal('depositModal')">&times;</button>
+      </div>
+      <form id="depositForm" onsubmit="handleDeposit(event)">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label>Selecione o Cartão Destino</label>
+          <select id="depositCardId" class="form-input" required>
+            <!-- Preenchido dinamicamente via JS -->
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label>Valor do Depósito (R$)</label>
+          <input type="number" step="0.01" id="depositValue" class="form-input" required placeholder="0.00">
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label>Senha de Confirmação (6 dígitos)</label>
+          <input type="password" id="depositPassword" class="form-input" required placeholder="Insira sua senha">
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">Efetuar Depósito</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL TRANSFERÊNCIA (Atualizado com dados do cartão) -->
   <div class="modal-overlay" id="transferModal">
     <div class="modal">
       <div class="modal-header">
@@ -599,16 +648,28 @@
           <label>Chave Pix / Conta de Destino</label>
           <input type="text" id="transferDest" class="form-input" required placeholder="CPF, E-mail ou Chave">
         </div>
-        <div class="form-group" style="margin-bottom: 20px;">
+        <div class="form-group" style="margin-bottom: 12px;">
           <label>Valor da Transferência (R$)</label>
           <input type="number" step="0.01" id="transferValue" class="form-input" required placeholder="0.00">
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label>Número do Cartão Utilizado</label>
+          <input type="text" id="transferCardNumber" class="form-input" required placeholder="0000 0000 0000 0000">
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label>Código CVV</label>
+          <input type="password" maxlength="4" id="transferCardCvv" class="form-input" required placeholder="123">
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label>Senha do Cartão</label>
+          <input type="password" id="transferCardPassword" class="form-input" required placeholder="Senha de 6 dígitos">
         </div>
         <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">Enviar Transferência</button>
       </form>
     </div>
   </div>
 
-  <!-- MODAL CADASTRAR CARTÃO (Simplificado) -->
+  <!-- MODAL CADASTRAR CARTÃO -->
   <div class="modal-overlay" id="addModal">
     <div class="modal">
       <div class="modal-header">
@@ -625,23 +686,6 @@
           <input type="password" class="form-input" id="addPassword" required placeholder="Insira sua senha de 6 dígitos">
         </div>
         <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">Cadastrar Cartão</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL EDITAR CARTÃO (Sem bandeira) -->
-  <div class="modal-overlay" id="editModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Editar Cartão</h3>
-        <button class="close-btn" onclick="closeModal('editModal')">&times;</button>
-      </div>
-      <form id="editCardForm" onsubmit="handleEditCard(event)">
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label>Nome no Cartão</label>
-          <input type="text" class="form-input" id="editHolder" required>
-        </div>
-        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">Atualizar Alterações</button>
       </form>
     </div>
   </div>
@@ -675,14 +719,14 @@
           <span class="data-value" id="detailStatus" style="color: #4cd964;">Ativo</span>
         </div>
       </div>
-      <button class="btn-secondary" onclick="fetchSensitiveData()" id="toggleDataBtn" style="justify-content: center;">
+      <button class="btn-secondary" onclick="toggleSensitiveData()" id="toggleDataBtn" style="justify-content: center;">
         Revelar Dados
       </button>
     </div>
   </div>
 
   <!-- ==========================================================================
-       JAVASCRIPT / CHAMADAS DE API REAIS
+        JAVASCRIPT / CHAMADAS DE API REAIS
        ========================================================================== -->
   <script>
     let cards = [];
@@ -692,14 +736,12 @@
     let hideBalance = false;
     let revealSensitive = false;
 
-    // Configuração base da API (Substituir pela URL do backend real)
     const API_BASE_URL = "/api";
 
     document.addEventListener("DOMContentLoaded", () => {
       loadAllAppData();
     });
 
-    // Chamadas de API Gerais para carregar o painel
     async function loadAllAppData() {
       try {
         await Promise.all([
@@ -708,16 +750,18 @@
           fetchTransactions()
         ]);
       } catch (error) {
-        console.error("Erro ao conectar com a API:", error);
+        console.error("Erro no carregamento principal:", error);
       }
     }
 
     async function fetchCards() {
       try {
         const response = await fetch(`${API_BASE_URL}/cards`);
-        if (!response.ok) throw new Error("Falha ao buscar cartões");
+        if (!response.ok) throw new Error(`HTTP Erro Cartões: ${response.status}`);
 
-        cards = await response.json();
+        const json = await response.json();
+        const cardData = json.data !== undefined ? json.data : json;
+        cards = Array.isArray(cardData) ? cardData : [];
 
         if (cards.length > 0 && !selectedCardId) {
           selectedCardId = cards[0].id;
@@ -725,8 +769,10 @@
 
         renderCards();
         updateDashboardInfo();
+        populateDepositCardSelect();
 
       } catch (error) {
+        console.error("Erro em fetchCards:", error);
         document.getElementById("cardsGrid").innerHTML = `<p style="color: var(--gray-400);">Falta fazer api para essa funcionalidade</p>`;
       }
     }
@@ -734,23 +780,31 @@
     async function fetchBalance() {
       try {
         const response = await fetch(`${API_BASE_URL}/balance`);
-        if (!response.ok) throw new Error("Falha ao buscar saldo");
-        const data = await response.json();
-        accountData.totalBalance = data.data;
+        if (!response.ok) throw new Error(`HTTP Erro Saldo: ${response.status}`);
+        
+        const json = await response.json();
+        accountData.totalBalance = json.data !== undefined ? json.data : json;
+        
         calculateTotalBalance();
       } catch (error) {
-        document.getElementById("totalBalanceDisplay").innerText = "Falta fazer api para essa funcionalidade";
+        console.error("Erro em fetchBalance:", error);
+        document.getElementById("totalBalanceDisplay").innerText = "Erro ao carregar";
       }
     }
 
     async function fetchTransactions() {
       try {
         const response = await fetch(`${API_BASE_URL}/transactions`);
-        if (!response.ok) throw new Error("Falha ao buscar histórico");
-        transactions = await response.json();
+        if (!response.ok) throw new Error(`HTTP Erro Transações: ${response.status}`);
+        
+        const json = await response.json();
+        const txData = json.data !== undefined ? json.data : json;
+        transactions = Array.isArray(txData) ? txData : [];
+        
         renderTransactions();
       } catch (error) {
-        document.getElementById("transactionList").innerHTML = `<p style="color: var(--gray-400); font-size: 13px;">Falta fazer api para essa funcionalidade</p>`;
+        console.error("Erro em fetchTransactions:", error);
+        document.getElementById("transactionList").innerHTML = `<p style="color: var(--gray-400); font-size: 13px;">Erro ao carregar transações</p>`;
       }
     }
 
@@ -763,7 +817,7 @@
       const grid = document.getElementById("cardsGrid");
       grid.innerHTML = "";
 
-      for (card of cards) {
+      for (const card of cards) {
         const isSelected = card.id === selectedCardId;
         const formattedNum = "**** " + (card.number ? card.number.slice(-4) : "0000");
         
@@ -780,7 +834,7 @@
           <div class="card-bottom">
             <div>
               <div class="card-holder">${card.holder}</div>
-              <div class="card-expiry">VAL: ${card.expiry || '--/--'} ${card.blocked ? '(BLOQUEADO)' : ''}</div>
+              <div class="card-expiry">VAL: ${card.exp || '--/--'} ${card.blocked ? '(BLOQUEADO)' : ''}</div>
             </div>
             <div style="text-align: right;">
               <div style="font-size: 11px; color: var(--gray-400);">Saldo</div>
@@ -792,8 +846,22 @@
         `;
         grid.appendChild(cardEl);
       }
+      populateDepositCardSelect();
+    }
 
-      
+    function populateDepositCardSelect() {
+      const select = document.getElementById("depositCardId");
+      if (!select) return;
+      select.innerHTML = "";
+      cards.forEach(card => {
+        const option = document.createElement("option");
+        option.value = card.id;
+        option.textContent = `${card.holder} - Final ${card.number ? card.number.slice(-4) : '0000'}`;
+        if (card.id === selectedCardId) {
+          option.selected = true;
+        }
+        select.appendChild(option);
+      });
     }
 
     function selectCard(id) {
@@ -820,7 +888,8 @@
       if (hideBalance) {
         display.innerText = "R$ ••••••••";
       } else {
-        const total = cards.reduce((acc, c) => acc + (c.balance || 0), 0);
+        const safeCards = Array.isArray(cards) ? cards : [];
+        const total = safeCards.reduce((acc, c) => acc + (c.balance || 0), 0);
         display.innerText = formatCurrency(accountData.totalBalance !== undefined ? accountData.totalBalance : total);
       }
     }
@@ -838,7 +907,6 @@
       transactions.forEach(tx => {
         const item = document.createElement("div");
         item.className = "transaction-item";
-        // <div class="tx-date">${tx.date}</div>
         item.innerHTML = `
           <div class="tx-details">
             <div>
@@ -846,7 +914,7 @@
               <div class="tx-date">05/08/2026</div>
             </div>
           </div>
-          <div class="tx-amount" style="color: ${tx.value && tx.flow.includes('in') ? '#4cd964' : 'red'}">${formatCurrency(tx.value)}</div>
+          <div class="tx-amount" style="color: ${tx.value && String(tx.flow).includes('in') ? '#4cd964' : 'red'}">${formatCurrency(tx.value)}</div>
         `;
         list.appendChild(item);
       });
@@ -854,6 +922,12 @@
 
     // Modal Control Utils
     function openModal(modalId) {
+      if (modalId === 'transferModal' && selectedCardId) {
+        const card = cards.find(c => c.id === selectedCardId);
+        if (card && card.number) {
+          document.getElementById("transferCardNumber").value = card.number;
+        }
+      }
       document.getElementById(modalId).classList.add('active');
     }
 
@@ -861,35 +935,64 @@
       document.getElementById(modalId).classList.remove('active');
     }
 
-    // API: Realizar Transferência
+    // Nova função de Depósito com chamada real à API
+    async function handleDeposit(event) {
+      event.preventDefault();
+      const cardId = document.getElementById("depositCardId").value;
+      const value = document.getElementById("depositValue").value;
+      const password = document.getElementById("depositPassword").value;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/deposits`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cardId, value, password })
+        });
+        
+        if (response.ok) {
+          alert("Depósito realizado com sucesso!");
+        } else {
+          alert("Erro ao realizar depósito!");
+        }
+        
+        closeModal('depositModal');
+        document.getElementById('depositForm').reset();
+        loadAllAppData();
+      } catch (error) {
+        console.error("Erro no depósito:", error);
+      }
+    }
+
+    // Função de Transferência atualizada enviando dados do cartão para a API
     async function handleTransfer(event) {
       event.preventDefault();
       const destination = document.getElementById("transferDest").value;
       const value = document.getElementById("transferValue").value;
+      const cardNumber = document.getElementById("transferCardNumber").value;
+      const cvv = document.getElementById("transferCardCvv").value;
+      const password = document.getElementById("transferCardPassword").value;
 
       try {
         const response = await fetch(`${API_BASE_URL}/transfers`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ destination, value })
+          body: JSON.stringify({ destination, value, cardNumber, cvv, password })
         });
         
         if (response.ok) {
           alert("Transferência realizada com sucesso!");
         } else {
-          alert("Erro na transferencia!")
+          alert("Erro na transferência!");
         }
         
         closeModal('transferModal');
         document.getElementById('transferForm').reset();
         loadAllAppData();
-
       } catch (error) {
-        alert("Falta fazer api para essa funcionalidade");
+        console.error("Erro na transferência:", error);
       }
     }
 
-    // API: Cadastrar Cartão (Somente Nome e Senha)
     async function handleAddCard(event) {
       event.preventDefault();
       const holder = document.getElementById("addHolder").value.toUpperCase();
@@ -909,41 +1012,10 @@
         document.getElementById("addCardForm").reset();
         fetchCards();
       } catch (error) {
-        alert("Falta fazer api para essa funcionalidade");
+        console.error("Erro no cadastro de cartão:", error);
       }
     }
 
-    // API: Abrir Modal de Edição
-    function openEditModal() {
-      const card = cards.find(c => c.id === selectedCardId);
-      if (!card) return alert("Selecione um cartão para editar.");
-      document.getElementById("editHolder").value = card.holder;
-      openModal("editModal");
-    }
-
-    // API: Alterar Cartão
-    async function handleEditCard(event) {
-      event.preventDefault();
-      const holder = document.getElementById("editHolder").value.toUpperCase();
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/cards/${selectedCardId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ holder })
-        });
-
-        if (!response.ok) throw new Error("Erro ao editar");
-
-        alert("Cartão atualizado com sucesso!");
-        closeModal("editModal");
-        fetchCards();
-      } catch (error) {
-        alert("Falta fazer api para essa funcionalidade");
-      }
-    }
-
-    // API: Excluir Cartão
     async function deleteSelectedCard() {
       if (!selectedCardId) return alert("Selecione um cartão.");
       if (!confirm("Tem certeza que deseja excluir este cartão?")) return;
@@ -958,17 +1030,16 @@
         alert("Cartão excluído com sucesso!");
         fetchCards();
       } catch (error) {
-        alert("Falta fazer api para essa funcionalidade");
+        console.error("Erro na exclusão do cartão:", error);
       }
     }
 
-    // API: Bloquear / Desbloquear Cartão
     async function toggleBlockSelectedCard() {
       const card = cards.find(c => c.id === selectedCardId);
       if (!card) return;
 
       try {
-        const response = await fetch(`${API_BASE_URL}/cards/${selectedCardId}/block`, {
+        const response = await fetch(`${API_BASE_URL}/cards/${selectedCardId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ blocked: !card.blocked })
@@ -980,46 +1051,47 @@
         renderCards();
         updateDashboardInfo();
       } catch (error) {
-        alert("Falta fazer api para essa funcionalidade");
+        console.error("Erro ao bloquear cartão:", error);
       }
     }
 
-    // API: Visualizar Dados Sigilosos
     function openDetailsModal() {
       const card = cards.find(c => c.id === selectedCardId);
       if (!card) return;
 
       revealSensitive = false;
-      document.getElementById("detailHolder").innerText = card.holder;
-      document.getElementById("detailExpiry").innerText = card.expiry || '--/--';
+      document.getElementById("detailHolder").innerText = card.holder || '-';
+      document.getElementById("detailExpiry").innerText = card.exp || '--/--';
       document.getElementById("detailNumber").innerText = "**** **** **** " + (card.number ? card.number.slice(-4) : "0000");
       document.getElementById("detailCvv").innerText = "***";
-      document.getElementById("toggleDataBtn").innerText = "Revelar Dados";
       
+      const statusEl = document.getElementById("detailStatus");
+      if (card.blocked) {
+        statusEl.innerText = "Bloqueado";
+        statusEl.style.color = "#ff4d4d";
+      } else {
+        statusEl.innerText = "Ativo";
+        statusEl.style.color = "#4cd964";
+      }
+      
+      document.getElementById("toggleDataBtn").innerText = "Revelar Dados";
       openModal("detailsModal");
     }
 
-    async function fetchSensitiveData() {
+    function toggleSensitiveData() {
+      const card = cards.find(c => c.id === selectedCardId);
+      if (!card) return;
+
       if (revealSensitive) {
         revealSensitive = false;
-        const card = cards.find(c => c.id === selectedCardId);
         document.getElementById("detailNumber").innerText = "**** **** **** " + (card.number ? card.number.slice(-4) : "0000");
         document.getElementById("detailCvv").innerText = "***";
         document.getElementById("toggleDataBtn").innerText = "Revelar Dados";
-        return;
-      }
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/cards/${selectedCardId}/sensitive`);
-        if (!response.ok) throw new Error("Erro ao buscar dados sigilosos");
-        const sensitiveData = await response.json();
-
+      } else {
         revealSensitive = true;
-        document.getElementById("detailNumber").innerText = sensitiveData.number;
-        document.getElementById("detailCvv").innerText = sensitiveData.cvv;
+        document.getElementById("detailNumber").innerText = card.number || "Não disponível";
+        document.getElementById("detailCvv").innerText = card.cvv || "---";
         document.getElementById("toggleDataBtn").innerText = "Ocultar Dados";
-      } catch (error) {
-        alert("Falta fazer api para essa funcionalidade");
       }
     }
   </script>

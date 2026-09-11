@@ -8,10 +8,11 @@ from functools import wraps
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
+        a = access()
         token = request.cookies.get('token')
         if token:
-            if access.check_token(token):
-                return f(*args, **kwargs)
+            if a.check_token(token):
+                return f(a, *args, **kwargs)
         return redirect(url_for('login'))
     return wrapper
 
@@ -31,7 +32,7 @@ def login():
     if not username or not password:
         return render_template('login.html', error='Digite o username e a senha!')
 
-    log = access.login(username, password)
+    log = access().login(username, password)
     if log[0]:
         response = make_response(redirect(url_for('dashboard')))
         response.set_cookie('token', log[1])
@@ -42,5 +43,5 @@ def login():
 
 @app.route('/dashboard')
 @login_required
-def dashboard():
+def dashboard(_):
     return render_template('dashboard.html')

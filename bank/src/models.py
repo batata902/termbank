@@ -7,6 +7,7 @@ import sqlite3
 from contextlib import contextmanager
 from dataclasses import dataclass
 from hashlib import sha256
+from datetime import datetime
 
 @contextmanager
 def db():
@@ -85,6 +86,8 @@ class User:
 
         if value > self.currency:
             return False
+
+        current_date: str = datetime.now().strftime("%d/%m/&Y:%H-%M")
         
         with db() as (conn, cur):
             try:
@@ -100,7 +103,7 @@ class User:
 
                     cur.execute('UPDATE users SET currency=currency + ? WHERE id=?', (value, dest['id']))
 
-                    cur.execute('INSERT INTO transfers(source, destiny, value) VALUES(?, ?, ?)', (self.id, dest['id'], value))
+                    cur.execute('INSERT INTO transfers(source, destiny, value, date) VALUES(?, ?, ?, ?)', (self.id, dest['id'], value, current_date))
 
                     conn.commit()
                     self._currency -= int(value)
